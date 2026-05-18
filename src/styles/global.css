@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Covered+By+Your+Grace&family=Inter:wght@100..900&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --color-primary: #FF6D2C;
+  --color-secondary: #FDF3EA;
+  --color-dark-program: #93370D;
+
+  --color-black: #1E1E1E;
+  --color-white: #FFFFFF;
+
+  --shadow-soft: 0px 4px 16px rgba(0,0,0,0.08);
+  --shadow-medium: 0px 6px 24px rgba(0,0,0,0.12);
+
+  --radius-large: 20px;
+
+  --transition-default: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-secondary);
+  color: var(--color-black);
+
+  font-family: 'Inter', sans-serif;
+
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  width: 100%;
+  display: block;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5E6DA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E65C18;
+}
+::selection {
+  background: var(--color-primary);
+  color: white;
+}
+
+.font-handwriting {
+  font-family: 'Covered By Your Grace', cursive;
+}
+.container-default {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.hero-overlay {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0,0,0,0.35) 0%,
+      rgba(0,0,0,0.65) 100%
+    );
+}
+
+.glass {
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.hover-default {
+  transition: all .3s ease;
+}
+
+.hover-default:hover {
+  transform: translateY(-2px);
+}
+
+.fade-in {
+  animation: fadeIn .4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
