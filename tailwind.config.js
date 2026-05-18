@@ -28,6 +28,7 @@ export default {
       fontFamily: {
         primary: ["Inter", "sans-serif"],
         handwriting: ["'Covered By Your Grace'", "cursive"],
+        logo: ["Faster One", "cursive"],
       },
 
       boxShadow: {
@@ -35,6 +36,7 @@ export default {
         medium: "0px 6px 24px rgba(0,0,0,0.12)",
         strong: "0px 10px 32px rgba(0,0,0,0.18)",
         glow: "0px 0px 24px rgba(255,109,44,0.35)",
+        search: "0 4px 4px rgba(0,0,0,0.25)",
       },
 
       borderRadius: {
