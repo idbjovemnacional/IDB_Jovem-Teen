@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Covered+By+Your+Grace&family=Inter:wght@100..900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Faster+One&family=Inter:wght@100..900&display=swap');
 @import "tailwindcss";
 
-:root {
+@theme {
   --color-primary: #FF6D2C;
   --color-secondary: #FDF3EA;
   --color-dark-program: #93370D;
@@ -10,145 +10,156 @@
   --color-black: #1E1E1E;
   --color-white: #FFFFFF;
 
-  --shadow-soft: 0px 4px 16px rgba(0,0,0,0.08);
-  --shadow-medium: 0px 6px 24px rgba(0,0,0,0.12);
+  --color-gray-soft: #B0B0B0;
+  --color-gray-medium: #6B6B6B;
+  --color-gray-light: #F5F5F5;
 
-  --radius-large: 20px;
+  --color-success: #3CB371;
+  --color-warning: #FFB547;
+  --color-error: #FF5A5A;
 
-  --transition-default: all 0.3s ease;
-}
+  --font-family-primary: "Inter", sans-serif;
+  --font-family-handwriting: "Covered By Your Grace", cursive;
+  --font-family-logo: "Faster One", cursive;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+  --shadow-soft: 0px 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0px 6px 24px rgba(0, 0, 0, 0.12);
+  --shadow-strong: 0px 10px 32px rgba(0, 0, 0, 0.18);
+  --shadow-glow: 0px 0px 24px rgba(255, 109, 44, 0.35);
+  --shadow-search: 0 4px 4px rgba(0, 0, 0, 0.25);
 
-html {
-  scroll-behavior: smooth;
-}
+  --radius-xl2: 1.25rem;
+  --radius-xl3: 1.75rem;
 
-body {
-  background-color: var(--color-secondary);
-  color: var(--color-black);
+  --breakpoint-xs: 480px;
 
-  font-family: 'Inter', sans-serif;
-
-  min-height: 100vh;
-
-  overflow-x: hidden;
-
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-  border: none;
-  outline: none;
-}
-
-button {
-  cursor: pointer;
-  transition: var(--transition-default);
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-img {
-  width: 100%;
-  display: block;
-}
-
-ul,
-ol {
-  list-style: none;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #F5E6DA;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #E65C18;
-}
-::selection {
-  background: var(--color-primary);
-  color: white;
-}
-
-.font-handwriting {
-  font-family: 'Covered By Your Grace', cursive;
-}
-.container-default {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-.hero-overlay {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0,0,0,0.35) 0%,
-      rgba(0,0,0,0.65) 100%
-    );
-}
-
-.glass {
-  background: rgba(255,255,255,0.08);
-
-  backdrop-filter: blur(12px);
-
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.hover-default {
-  transition: all .3s ease;
-}
-
-.hover-default:hover {
-  transform: translateY(-2px);
-}
-
-.fade-in {
-  animation: fadeIn .4s ease forwards;
+  --animate-fade-in: fadeIn 0.4s ease forwards;
+  --animate-pulse-soft: pulseSoft 2s infinite;
+  --animate-scale-in: scaleIn 0.3s ease forwards;
+  --animate-float: float 3s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+/*
+  IMPORTANT: All base styles MUST be inside @layer base
+  so that Tailwind utility classes can properly override them.
+  In Tailwind v4, unlayered CSS beats layered CSS in specificity.
+*/
+@layer base {
+  html {
+    scroll-behavior: smooth;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  body {
+    background-color: #FDF3EA;
+    color: #1E1E1E;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  ul,
+  ol {
+    list-style: none;
   }
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+/* Scrollbar & selection — these pseudo-elements don't conflict with utilities */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #F5E6DA; }
+::-webkit-scrollbar-thumb { background: #FF6D2C; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #E65C18; }
+::selection { background: #FF6D2C; color: white; }
 
-.no-scrollbar {
-  scrollbar-width: none;
+/* Utility classes — in @layer utilities so they compose with Tailwind */
+@layer utilities {
+  .font-handwriting {
+    font-family: 'Covered By Your Grace', cursive;
+  }
+
+  .font-logo {
+    font-family: "Faster One", cursive;
+    color: #FF6D2C;
+  }
+
+  .container-default {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.65) 100%);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .hover-default {
+    transition: all 0.3s ease;
+  }
+  .hover-default:hover {
+    transform: translateY(-2px);
+  }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
 }
