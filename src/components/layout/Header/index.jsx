@@ -156,7 +156,7 @@ export default function Header() {
 
       {/* Mobile Menu Panel */}
       <div
-        className={`fixed top-[70px] right-0 w-full h-[calc(100dvh-70px)] bg-white shadow-2xl z-50 lg:hidden transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-[70px] right-0 w-[80%] max-w-[320px] h-[calc(100dvh-70px)] bg-white shadow-2xl z-50 lg:hidden transition-transform duration-300 ease-in-out flex flex-col ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

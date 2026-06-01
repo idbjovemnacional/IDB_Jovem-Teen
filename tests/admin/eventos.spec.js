@@ -121,16 +121,29 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
     expect(isRequired !== null || alertMessage === 'O nome do evento é obrigatório.').toBeTruthy();
   });
 
-  test('deve testar os botões de Voltar na criação e edição', async ({ page }) => {
+  test('deve testar os botões de Voltar e Cancelar na criação e edição, além de Editar Programação', async ({ page }) => {
     // Create
     await page.goto('/admin/eventos/criar');
     await page.getByTitle('Voltar').click();
+    await expect(page).toHaveURL(/\/admin\/eventos/);
+
+    await page.goto('/admin/eventos/criar');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
     await expect(page).toHaveURL(/\/admin\/eventos/);
 
     // Edit
     await page.goto('/admin/eventos/1/editar');
     await page.getByTitle('Voltar').click();
     await expect(page).toHaveURL(/\/admin\/eventos/);
+
+    await page.goto('/admin/eventos/1/editar');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page).toHaveURL(/\/admin\/eventos/);
+
+    // Botão Editar Programação (só existe na edição)
+    await page.goto('/admin/eventos/1/editar');
+    await page.getByRole('button', { name: /Editar Programação do Evento/i }).click();
+    await expect(page).toHaveURL(/\/admin\/eventos\/1\/programacao/);
   });
 
   test('deve abrir detalhes de um evento anterior e verificar dados', async ({ page }) => {
@@ -255,5 +268,149 @@ test.describe('Admin - Gerenciamento de Programação do Evento', () => {
 
     // Redireciona de volta p/ a edição do evento
     await expect(page).toHaveURL(/\/admin\/eventos\/1\/editar/);
+  });
+});
+
+test.describe('Admin - Cobertura Extra de Branches', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
+  test('deve exibir alert ao criar evento com título mas sem local (Create.jsx L15)', async ({ page }) => {
+    await page.goto('/admin/eventos/criar');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Preenche título e data mas NÃO preenche local
+    await page.getByPlaceholder('Nome do Evento').fill('Evento Sem Local');
+    await page.locator('input[name="date"]').fill('2029-12-31');
+
+    // Remove required dos inputs para bypass HTML5 validation
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForTimeout(500);
+    expect(alertMessage).toContain('Local');
+  });
+
+  test('deve exibir alert ao editar evento limpando o título (Edit.jsx L32)', async ({ page }) => {
+    await page.goto('/admin/eventos/1/editar');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Limpa o título e remove required para bypass HTML5 validation
+    const titleInput = page.getByPlaceholder('Nome do Evento');
+    await titleInput.fill('');
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForTimeout(500);
+    expect(alertMessage.length).toBeGreaterThan(0);
+  });
+
+  test('deve exibir Evento não encontrado na programação com ID inválido (EditSchedule.jsx L29-39)', async ({ page }) => {
+    await page.goto('/admin/eventos/999999/programacao');
+
+    await expect(page.getByText('Evento não encontrado.')).toBeVisible();
+    await page.getByRole('button', { name: 'Voltar para Eventos' }).click();
+    await expect(page).toHaveURL(/\/admin\/eventos/);
+  });
+
+  test('deve exibir alert ao adicionar atividade sem nome (ActivityInlineForm.jsx L19-20)', async ({ page }) => {
+    await page.goto('/admin/eventos/1/programacao');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Abre formulário inline
+    await page.getByTitle('Adicionar atividade').click();
+
+    // Remove required para bypass HTML5 validation
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    // Tenta confirmar sem preencher nome
+    await page.getByRole('button', { name: 'Confirmar' }).click();
+
+    await page.waitForTimeout(500);
+    expect(alertMessage).toContain('Nome da atividade');
+  });
+
+  test('deve editar atividade inline na programação (EditSchedule.jsx L99)', async ({ page }) => {
+    await page.goto('/admin/eventos/1/programacao');
+
+    // Clica no editar da primeira atividade
+    const btnEditar = page.getByTitle('Editar atividade').first();
+    await expect(btnEditar).toBeVisible();
+    await btnEditar.click();
+
+    // Modifica o nome
+    const inputAtividade = page.getByPlaceholder('Nome da atividade');
+    await inputAtividade.fill('Atividade Inline Editada');
+
+    // Cancela para cobrir o setEditingItem(null) via botão Cancelar
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+
+    // Agora edita de novo e confirma
+    await page.getByTitle('Editar atividade').first().click();
+    await page.getByPlaceholder('Nome da atividade').fill('Atividade Confirmada');
+    await page.getByRole('button', { name: 'Confirmar' }).click();
+
+    await expect(page.getByText('Atividade Confirmada')).toBeVisible();
+  });
+
+  test('deve cobrir Details.jsx com evento sem campos opcionais preenchidos (Details.jsx branches)', async ({ page }) => {
+    // Primeiro cria um evento mínimo no passado para aparecer em "Eventos Anteriores" com link "Detalhes"
+    await page.goto('/admin/eventos/criar');
+    await page.getByPlaceholder('Nome do Evento').fill('Evento Minimalista');
+    await page.locator('input[name="date"]').fill('2020-01-01');
+    await page.getByPlaceholder('Local do evento').fill('Local Teste');
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await expect(page).toHaveURL(/\/admin\/eventos/);
+
+    // Acha o link Detalhes do novo evento especificamente
+    const eventCard = page.locator('.flex.items-center.gap-4').filter({ hasText: 'Evento Minimalista' }).first();
+    const detalhesLink = eventCard.getByRole('link', { name: 'Detalhes' });
+    await detalhesLink.click();
+
+    await expect(page.getByRole('heading', { name: 'Detalhes do Evento' })).toBeVisible();
+    // Os campos opcionais devem ter o "—" como fallback
+    await expect(page.getByText('—').first()).toBeVisible();
+  });
+
+  test('deve criar evento sem título via JS para cobrir Create.jsx L15 (alert branch)', async ({ page }) => {
+    await page.goto('/admin/eventos/criar');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Remove required de TODOS os inputs
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    // Submete sem preencher nada
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForTimeout(500);
+    expect(alertMessage.length).toBeGreaterThan(0);
   });
 });

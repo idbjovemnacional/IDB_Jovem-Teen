@@ -103,3 +103,21 @@ test.describe('Admin - Voluntários Detalhes - Evento Não Encontrado', () => {
     await expect(page).toHaveURL(/\/admin\/voluntarios/);
   });
 });
+
+test.describe('Admin - Voluntários - Branch de linkFormularioVoluntarios', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
+  test('deve verificar atributo href do link Abrir Formulário (Details.jsx L86)', async ({ page }) => {
+    // Visita voluntários de um evento existente
+    await page.goto('/admin/voluntarios/1');
+    
+    const linkForms = page.getByRole('link', { name: /Abrir Formulário/i }).first();
+    await expect(linkForms).toBeVisible();
+    
+    // Verifica se tem href (pode ser o link real ou '#' dependendo do mock)
+    const href = await linkForms.getAttribute('href');
+    expect(href).toBeTruthy();
+  });
+});

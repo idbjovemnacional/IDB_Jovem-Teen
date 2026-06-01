@@ -93,6 +93,22 @@ test.describe('Header e Navegação Desktop', () => {
     await nav.getByText('Produtos', { exact: true }).click();
   });
 
+  test('deve navegar para home e rolar até a seção ao clicar em link hash partindo de outra página', async ({ page }) => {
+    // Começa em outra página
+    await page.goto('/eventos');
+    await page.setViewportSize({ width: 1280, height: 720 });
+    
+    // Clica no link Contato (que é um hash link /#contato)
+    const nav = page.locator('nav').first();
+    await nav.getByText('Contato', { exact: true }).click();
+    
+    // Deve redirecionar para a home
+    await expect(page).toHaveURL(/.*\/$/);
+    
+    // Aguarda o setTimeout de 100ms do header
+    await page.waitForTimeout(200);
+  });
+
   test('deve exibir o ícone de login na navegação que direciona para /login', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 

@@ -53,15 +53,23 @@ test.describe('Admin - Gerenciamento de Produtos CRUD', () => {
     expect(isRequired !== null || alertMessage === 'O nome do produto é obrigatório.').toBeTruthy();
   });
 
-  test('deve testar os botões de Voltar na criação e edição', async ({ page }) => {
+  test('deve testar os botões de Voltar e Cancelar na criação e edição', async ({ page }) => {
     // Create
     await page.goto('/admin/produtos/criar');
     await page.getByTitle('Voltar').click();
     await expect(page).toHaveURL(/\/admin\/produtos/);
 
+    await page.goto('/admin/produtos/criar');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page).toHaveURL(/\/admin\/produtos/);
+
     // Edit (produto 1 existe no mock mockProducts)
     await page.goto('/admin/produtos/1/editar');
     await page.getByTitle('Voltar').click();
+    await expect(page).toHaveURL(/\/admin\/produtos/);
+
+    await page.goto('/admin/produtos/1/editar');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
     await expect(page).toHaveURL(/\/admin\/produtos/);
   });
 
@@ -128,5 +136,47 @@ test.describe('Admin - Gerenciamento de Produtos CRUD', () => {
 
     const inputLink = page.getByPlaceholder('http://produto.com');
     await expect(inputLink).toBeVisible();
+  });
+
+  test('deve exibir alert ao criar produto preenchendo nome vazio via JS (Create.jsx L15)', async ({ page }) => {
+    await page.goto('/admin/produtos/criar');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Preenche e depois limpa o nome (para bypass do required HTML5)
+    const nomeInput = page.getByPlaceholder('Nome do produto');
+    await nomeInput.fill('');
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForTimeout(500);
+    expect(alertMessage.length).toBeGreaterThan(0);
+  });
+
+  test('deve exibir alert ao editar produto limpando nome (Edit.jsx L32)', async ({ page }) => {
+    await page.goto('/admin/produtos/1/editar');
+
+    let alertMessage = '';
+    page.on('dialog', async dialog => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    // Limpa o nome via evaluate para bypass do required
+    const nomeInput = page.getByPlaceholder('Nome do produto');
+    await nomeInput.fill('');
+    await page.evaluate(() => {
+      document.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    });
+
+    await page.getByRole('button', { name: 'Salvar' }).click();
+    await page.waitForTimeout(500);
+    expect(alertMessage.length).toBeGreaterThan(0);
   });
 });
