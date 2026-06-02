@@ -18,7 +18,7 @@ test.describe('Página de Galeria', () => {
 
     const btnVoltar = page.getByLabel('Voltar');
     await expect(btnVoltar).toBeVisible();
-    
+
     await btnVoltar.click();
     await expect(page).toHaveURL('/');
   });
@@ -31,20 +31,16 @@ test.describe('Página de Galeria', () => {
     // Verifica as imagens do mock local
     const imagens = gridContainer.locator('img');
     const count = await imagens.count();
-    
+
     // Se mockGallery for populado, vai ter > 0
     if (count > 0) {
       await expect(imagens.first()).toBeVisible();
-      
+
       // Verifica textos nos cards de galeria (evento e location mocados)
       const nomesEventos = gridContainer.locator('h3');
       await expect(nomesEventos.first()).toBeVisible();
     }
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Localização nos cards
-  // ───────────────────────────────────────────────────
 
   test('deve exibir localização nos cards de galeria', async ({ page }) => {
     const gridContainer = page.locator('section > div.grid');
@@ -53,19 +49,15 @@ test.describe('Página de Galeria', () => {
     // Verifica os parágrafos de localização (photo.location)
     const locations = gridContainer.locator('p');
     const count = await locations.count();
-    
+
     // Os 9 cards do mock devem ter localização
     expect(count).toBeGreaterThan(0);
-    
+
     // Verifica localizações específicas do mock
     await expect(gridContainer.getByText('São Paulo, SP').first()).toBeVisible();
     await expect(gridContainer.getByText('Brasília, DF')).toBeVisible();
     await expect(gridContainer.getByText('Moçoro, RN')).toBeVisible();
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Alt text das imagens
-  // ───────────────────────────────────────────────────
 
   test('deve ter alt text correto nas imagens da galeria', async ({ page }) => {
     const gridContainer = page.locator('section > div.grid');
@@ -73,7 +65,7 @@ test.describe('Página de Galeria', () => {
 
     const imagens = gridContainer.locator('img');
     const count = await imagens.count();
-    
+
     expect(count).toBeGreaterThan(0);
 
     // Alt text segue o padrão: "${photo.event} - ${photo.location}"
@@ -87,10 +79,6 @@ test.describe('Página de Galeria', () => {
     // Verifica alt text específico
     await expect(imagens.first()).toHaveAttribute('alt', 'IDB Jovem & Teens One - São Paulo, SP');
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Todos os cards renderizados
-  // ───────────────────────────────────────────────────
 
   test('deve renderizar todos os 9 cards de galeria do mock', async ({ page }) => {
     const gridContainer = page.locator('section > div.grid');

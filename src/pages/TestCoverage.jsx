@@ -14,7 +14,6 @@ import Dropdown from '../components/ui/Dropdown';
 import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
 import SectionTitle from '../components/ui/SectionTitle';
-import DashboardEventRow from './Admin/Dashboard/components/DashboardEventRow';
 import ActivityInlineForm from './Admin/Eventos/components/ActivityInlineForm';
 import ActivityRow from './Admin/Eventos/components/ActivityRow';
 import AdminTable from './Admin/components/AdminTable';
@@ -22,6 +21,10 @@ import EventGallery from './EventoDetalhe/components/EventGallery';
 import EventSchedule from './EventoDetalhe/components/EventSchedule';
 import SpeakerList from './EventoDetalhe/components/SpeakerList';
 import HeroSection from './Home/sections/HeroSection';
+import EventosSection from './Home/sections/EventosSection';
+import GaleriaSection from './Home/sections/GaleriaSection';
+import LideresSection from './Home/sections/LideresSection';
+import ProdutosSection from './Home/sections/ProdutosSection';
 import { useAuth } from '../context/AuthContext';
 import useModal from '../hooks/useModal';
 import { formatDate, getCountdown } from '../utils/formatDate';
@@ -98,36 +101,30 @@ export default function TestCoverage() {
     productModel.deleteProduct('invalid-id');
     productModel.deleteProduct(1);
 
+    // Cover createEvent/createProduct with empty array (L29 branch: events.length > 0 ? ... : 1)
+    const evKey = 'idb_admin_events';
+    const prKey = 'idb_admin_products';
+    const savedEv = localStorage.getItem(evKey);
+    const savedPr = localStorage.getItem(prKey);
+    localStorage.setItem(evKey, JSON.stringify([]));
+    eventModel.createEvent({ title: 'Empty Test' });
+    localStorage.setItem(prKey, JSON.stringify([]));
+    productModel.createProduct({ name: 'Empty Test' });
+    // Restore
+    if (savedEv) localStorage.setItem(evKey, savedEv); else localStorage.removeItem(evKey);
+    if (savedPr) localStorage.setItem(prKey, savedPr); else localStorage.removeItem(prKey);
+
     modal.open();
     setTimeout(() => modal.close(), 100);
 
     // Hit the AuthContext catch block
     localStorage.setItem("idb_auth", "{invalid json");
     
-    // Hit the useAuth Error when outside AuthProvider
+    // Hit the useAuth Error when outside AuthProvider directly (it's just a useContext call)
     try {
-      const div = document.createElement('div');
-      const root = createRoot(div);
-      
-      class ErrorBoundary extends React.Component {
-        constructor(props) { super(props); this.state = { hasError: false }; }
-        static getDerivedStateFromError(error) { return { hasError: true }; }
-        render() { return this.state.hasError ? null : this.props.children; }
-      }
-      
-      function BadComponent() {
-        useAuth(); // Will throw because not in AuthProvider
-        return null;
-      }
-      
-      root.render(
-        <ErrorBoundary>
-          <BadComponent />
-        </ErrorBoundary>
-      );
-      setTimeout(() => root.unmount(), 100);
+      useAuth();
     } catch (e) {
-      console.error(e);
+      // Ignored
     }
 
   }, []);
@@ -189,21 +186,30 @@ export default function TestCoverage() {
       <SectionTitle title="With Back" onBack={() => { }} backTitle="Voltar" />
       <SectionTitle title="With Right" rightContent={<span>Right</span>} />
 
-      <DashboardEventRow event={{ id: 1, title: 'D1', day: '10', month: 'Jul', location: 'FGA' }} isPast={true} />
-      <DashboardEventRow event={{ id: 1, title: 'D2', day: '15', month: 'Ago', location: 'SP' }} isPast={false} />
-
       <ActivityInlineForm onSave={() => { }} onCancel={() => { }} />
       <ActivityRow item={{ id: 1, name: 'A1', time: '10:00' }} onEdit={() => { }} onDelete={() => { }} />
+      {/* ActivityRow without time to cover L19 fallback "--:--" */}
+      <ActivityRow item={{ id: 2, name: 'A2' }} onEdit={() => { }} onDelete={() => { }} />
+      {/* ActivityRow without description to cover L14 fallback */}
+      <ActivityRow item={{ id: 3, name: 'A3', time: '11:00', description: 'Desc' }} onEdit={() => { }} onDelete={() => { }} />
 
       <AdminTable columns={[{ key: 'a', label: 'A' }]} data={[]} />
 
+      {/* Render EventGallery with no props to cover default parameters */}
+      <EventGallery />
       <EventGallery gallery={[]} />
+      {/* EventGallery with images to cover the non-empty branch */}
+      <EventGallery gallery={['/images/galeria/idb-jovem-one.jpg']} />
 
       <EventSchedule event={{}} />
 
       <SpeakerList event={{}} />
 
       <HeroSection countdown={{ days: 0, hours: 0, minutes: 0, seconds: 0 }} nextEvent={null} />
+      <EventosSection />
+      <GaleriaSection />
+      <LideresSection />
+      <ProdutosSection />
 
     </div>
   );

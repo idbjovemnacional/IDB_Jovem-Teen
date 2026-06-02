@@ -2,19 +2,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { fetchEventById, formatDate } from "../../../controllers/eventController";
 
-/* Linha da tabela de detalhes */
-function DetailRow({ label, value }) {
-  return (
-    <tr className="border-b border-gray-100 last:border-0">
-      <td className="py-4 pr-6 font-bold text-[#1E1E1E] text-sm sm:text-base whitespace-nowrap align-top">
-        {label}
-      </td>
-      <td className="py-4 font-bold text-[#FF6D2C] text-sm sm:text-base">
-        {value || "—"}
-      </td>
-    </tr>
-  );
-}
 
 export default function AdminEventoDetails() {
   const navigate = useNavigate();

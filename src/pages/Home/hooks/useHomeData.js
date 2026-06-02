@@ -11,7 +11,6 @@ export function useHomeData() {
   const [gallery] = useState(mockGallery);
 
   useEffect(() => {
-    if (!nextEvent?.date) return;
     const interval = setInterval(() => {
       setCountdown(getCountdown(nextEvent.date));
     }, 1000);

@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "coverage": "nyc report --reporter=html --reporter=text"
+    "coverage": "nyc report --reporter=html --reporter=text",
+    "test:coverage": "node -e \"fs.rmSync('.nyc_output', { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })\" && playwright test && npm run coverage"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

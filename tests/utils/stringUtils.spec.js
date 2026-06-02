@@ -31,24 +31,18 @@ test.describe('stringUtils', () => {
   });
 
   test('fuzzyMatch matches with distance on full word (lines 60-61)', () => {
-    // "camiseto" to "camiseta", length of target word is 8. allowedDistance = Math.floor(8/3) = 2.
-    // levenshtein('camiseto', 'camiseta') = 1, which is <= 2.
     expect(fuzzyMatch('camiseto', 'camiseta manga longa')).toBe(true);
   });
 
   test('fuzzyMatch matches prefix with typo (lines 67-68)', () => {
-    // query = "camu", target = "camiseta".
-    // tWord.includes("camu") = false.
-    // full word levenshtein: "camu" vs "camiseta" = 4 > 2.
-    // prefix check: prefix of length 4 is "cami".
-    // levenshtein("camu", "cami") = 1 <= 2.
+
     expect(fuzzyMatch('camu', 'camiseta')).toBe(true);
   });
 
   test('fuzzyMatch fails when word not matched', () => {
     expect(fuzzyMatch('xyz', 'camiseta')).toBe(false);
   });
-  
+
   test('fuzzyMatch matches multiple words (line 76)', () => {
     expect(fuzzyMatch('camo lnga', 'camiseta manga longa')).toBe(true);
   });
