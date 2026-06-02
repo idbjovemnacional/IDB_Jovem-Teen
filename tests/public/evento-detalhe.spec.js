@@ -23,7 +23,7 @@ test.describe('Página de Detalhes do Evento', () => {
 
     // Seção de Schedule (Programação)
     await expect(page.getByRole('heading', { name: 'Programação do evento' })).toBeVisible();
-    
+
     // Seção de Galeria de Fotos
     await expect(page.getByRole('heading', { name: 'Galeria do evento' })).toBeVisible();
   });
@@ -39,15 +39,11 @@ test.describe('Página de Detalhes do Evento', () => {
 
     const btnVerTodos = page.getByRole('link', { name: 'Ver todos os eventos' });
     await expect(btnVerTodos).toBeVisible();
-    
+
     // Testar se o link redireciona
     await btnVerTodos.click();
     await expect(page).toHaveURL(/\/eventos$/);
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Botão Voltar no Hero
-  // ───────────────────────────────────────────────────
 
   test('deve navegar para trás ao clicar no botão Voltar do Hero', async ({ page }) => {
     // Navega primeiro para /eventos, depois para detalhes para ter histórico
@@ -56,14 +52,10 @@ test.describe('Página de Detalhes do Evento', () => {
 
     const btnVoltar = page.getByLabel('Voltar');
     await expect(btnVoltar).toBeVisible();
-    
+
     await btnVoltar.click();
     await expect(page).toHaveURL(/\/eventos$/);
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Speakers individuais
-  // ───────────────────────────────────────────────────
 
   test('deve renderizar os cards de speakers com nome e profissão', async ({ page }) => {
     await page.goto('/eventos/evento-1');
@@ -86,15 +78,11 @@ test.describe('Página de Detalhes do Evento', () => {
     const speakerImages = speakerSection.locator('img');
     const imgCount = await speakerImages.count();
     expect(imgCount).toBe(4);
-    
+
     for (let i = 0; i < imgCount; i++) {
       await expect(speakerImages.nth(i)).toHaveAttribute('alt', /./);
     }
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Programação do evento (horários)
-  // ───────────────────────────────────────────────────
 
   test('deve renderizar a programação com horários e atividades', async ({ page }) => {
     await page.goto('/eventos/evento-1');
@@ -114,10 +102,6 @@ test.describe('Página de Detalhes do Evento', () => {
     await expect(scheduleSection.getByText('19:00 - 20:30')).toBeVisible();
     await expect(scheduleSection.getByText('20:30 - 21:00')).toBeVisible();
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Galeria do evento
-  // ───────────────────────────────────────────────────
 
   test('deve renderizar a galeria do evento quando existem fotos', async ({ page }) => {
     await page.goto('/eventos/evento-1');
@@ -140,15 +124,11 @@ test.describe('Página de Detalhes do Evento', () => {
 
     // Speakers e Schedule devem estar visíveis 
     await expect(page.getByRole('heading', { name: 'Palestrantes' })).toBeVisible();
-    
+
     // Galeria do evento NÃO deve aparecer (gallery vazia retorna null)
     const galeriaHeading = page.getByRole('heading', { name: 'Galeria do evento' });
     await expect(galeriaHeading).not.toBeVisible();
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Múltiplos eventos
-  // ───────────────────────────────────────────────────
 
   test('deve carregar informações do evento-em-destaque com schedule completo', async ({ page }) => {
     await page.goto('/eventos/evento-em-destaque');

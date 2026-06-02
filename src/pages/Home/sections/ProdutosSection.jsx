@@ -13,33 +13,6 @@ const mockProducts = [
   { id: 6, name: "Camiseta igreja", description: "Descrição do produto", image: produto1Img },
 ];
 
-function ProductCard({ product, index }) {
-  const isOrange = index % 2 !== 0;
-
-  return (
-    <div
-      className={`flex flex-col rounded-2xl overflow-hidden p-4 md:p-5 ${isOrange ? "bg-[#FF6D2C]" : "bg-[#FDF3EA]"
-        }`}
-    >
-      <div className="w-full bg-white flex items-center justify-center p-4 md:p-6 h-[220px] md:h-[260px] rounded-xl shadow-sm">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="h-full w-auto object-contain drop-shadow-sm mix-blend-multiply"
-        />
-      </div>
-      <div className="w-full pt-6 pb-2 text-center">
-        <p className="text-[1.1rem] md:text-xl font-bold text-neutral-800">
-          {product.name}
-        </p>
-        <p className="text-xs md:text-sm font-medium mt-2 text-neutral-600">
-          {product.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function ProdutosSection({ products = [] }) {
   // Ignoramos a prop e usamos o mock do design
   const displayProducts = mockProducts;

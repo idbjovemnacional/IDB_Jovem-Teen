@@ -154,8 +154,7 @@ export default function Eventos() {
   });
 
   const scrollCarousel = (dir) => {
-    if (!carouselRef.current) return;
-    carouselRef.current.scrollBy({ left: dir * 300, behavior: "smooth" });
+    carouselRef.current?.scrollBy({ left: dir * 300, behavior: "smooth" });
   };
 
   return (

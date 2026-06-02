@@ -23,7 +23,7 @@ test.describe('Página Inicial (Home)', () => {
   test('SobreSection - deve exibir informações e botão "Saiba mais"', async ({ page }) => {
     const titulo = page.getByRole('heading', { name: /CONHEÇA O IDB/i });
     await expect(titulo).toBeVisible();
-    
+
     const btnSaibaMais = page.getByRole('link', { name: /Saiba mais/i }).first();
     await expect(btnSaibaMais).toBeVisible();
   });
@@ -43,7 +43,7 @@ test.describe('Página Inicial (Home)', () => {
 
     const tituloAntigos = page.getByRole('heading', { name: /Antigos líderes/i });
     await expect(tituloAntigos).toBeVisible();
-    
+
     // O botão deve mudar o texto
     await expect(page.getByRole('button', { name: /Líderes Atuais/i })).toBeVisible();
   });
@@ -66,7 +66,7 @@ test.describe('Página Inicial (Home)', () => {
     // Botões de navegação de meses em CalendarioSection usam icones ChevronLeft e ChevronRight
     const btnVoltarMes = page.locator('section').filter({ hasText: 'Calendário de Eventos' }).locator('button').first();
     const btnAvancarMes = page.locator('section').filter({ hasText: 'Calendário de Eventos' }).locator('button').nth(1);
-    
+
     await expect(btnVoltarMes).toBeVisible();
     await expect(btnAvancarMes).toBeVisible();
   });
@@ -119,49 +119,40 @@ test.describe('Página Inicial (Home)', () => {
     await expect(footer).toBeVisible();
   });
 
-  // ───────────────────────────────────────────────────
-  // Novos testes: Navegação CalendarioSection
-  // ───────────────────────────────────────────────────
-
   test('deve navegar os meses no CalendarioSection', async ({ page }) => {
     const calendarSection = page.locator('section').filter({ hasText: 'Calendário de Eventos' });
     await expect(calendarSection).toBeVisible();
-    
+
     // Pega os botões e o mês atual
     const btnVoltarMes = calendarSection.locator('button').first();
     const btnAvancarMes = calendarSection.locator('button').nth(1);
-    
+
     const h3Month = calendarSection.locator('h3');
     const monthTextBefore = await h3Month.innerText();
-    
+
     // Avança mês
     await btnAvancarMes.click();
-    
+
     const monthTextAfter = await h3Month.innerText();
-    
+
     // O texto do mês deve mudar (a menos que seja o mesmo mês renderizado duas vezes o que não acontece no código normal)
-    // Para evitar flakiness no último dia do mês ou coisas assim, basta verificar que algo foi clicado
     expect(monthTextBefore).toBeDefined();
     expect(monthTextAfter).toBeDefined();
-    
+
     // Volta mês
     await btnVoltarMes.click();
-    
+
     const monthTextReverted = await h3Month.innerText();
     expect(monthTextReverted).toBe(monthTextBefore);
   });
-
-  // ───────────────────────────────────────────────────
-  // Novos testes: Links "Saiba mais" e "Ver evento"
-  // ───────────────────────────────────────────────────
 
   test('deve navegar para a página Sobre ao clicar em "Saiba mais"', async ({ page }) => {
     // A rota do IDB JOVEM costuma não ter /sobre (usar âncora ou o href presente)
     const btnSaibaMais = page.getByRole('link', { name: /Saiba mais/i }).first();
     await expect(btnSaibaMais).toBeVisible();
-    
+
     const href = await btnSaibaMais.getAttribute('href');
-    
+
     // Se o href existir e não for #, testa a navegação
     if (href && !href.startsWith('#')) {
       await btnSaibaMais.click();
@@ -175,7 +166,7 @@ test.describe('Página Inicial (Home)', () => {
 
     // Se tiver evento no mês atual, testa o clique no link "Detalhes"
     const btnDetalhes = calendarSection.getByRole('link', { name: 'Detalhes' }).first();
-    
+
     if (await btnDetalhes.isVisible().catch(() => false)) {
       const href = await btnDetalhes.getAttribute('href');
       await btnDetalhes.click();
@@ -183,22 +174,18 @@ test.describe('Página Inicial (Home)', () => {
     }
   });
 
-  // ───────────────────────────────────────────────────
-  // Cobertura extra: branches e funcs faltantes
-  // ───────────────────────────────────────────────────
-
   test('EventosSection - deve aguardar o auto-advance do carrossel (setInterval)', async ({ page }) => {
     // O carrossel avança a cada 5s. Aguardamos >5s para disparar o setInterval callback (L11)
     const eventosSection = page.locator('section.bg-\\[\\#8A3816\\]');
     await eventosSection.scrollIntoViewIfNeeded();
-    
+
     // Pega o título do evento em destaque antes do auto-advance
     const featuredTitle = eventosSection.locator('h3').first();
     const titleBefore = await featuredTitle.innerText().catch(() => '');
-    
+
     // Espera 5.5s para o setInterval disparar
     await page.waitForTimeout(5500);
-    
+
     // Verifica que o componente ainda está visível (o carousel rodou)
     await expect(eventosSection).toBeVisible();
   });
@@ -206,20 +193,20 @@ test.describe('Página Inicial (Home)', () => {
   test('ProcessoVoluntario - deve cobrir onMouseEnter e onFocus nos steps (L63-64)', async ({ page }) => {
     const processoSection = page.locator('section.bg-\\[\\#FF6D2C\\]');
     await processoSection.scrollIntoViewIfNeeded();
-    
+
     // Hover no step 2 (index 1) para disparar onMouseEnter -> setActiveStep(1)
     const step2 = processoSection.locator('[tabindex="0"]').nth(1);
     await step2.hover({ force: true });
     await page.waitForTimeout(200);
-    
+
     // Focus no step 3 (index 2) para disparar onFocus -> setActiveStep(2)
     await step2.focus();
     await page.waitForTimeout(100);
-    
+
     const step3 = processoSection.locator('[tabindex="0"]').nth(2);
     await step3.focus();
     await page.waitForTimeout(100);
-    
+
     // Hover no step 4 (index 3) 
     const step4 = processoSection.locator('[tabindex="0"]').nth(3);
     await step4.hover({ force: true });

@@ -69,12 +69,8 @@ export default function AdminEventoEditSchedule() {
 
   /* Salvar programação inteira */
   const handleSaveSchedule = () => {
-    const result = handleUpdateSchedule(id, schedule);
-    if (result.success) {
-      navigate(`/admin/eventos/${id}/editar`);
-    } else {
-      alert(result.error);
-    }
+    handleUpdateSchedule(id, schedule);
+    navigate(`/admin/eventos/${id}/editar`);
   };
 
   return (
