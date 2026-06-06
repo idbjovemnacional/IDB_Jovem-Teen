@@ -1,10 +1,12 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import produto1Img from "../../../assets/images/produto1.png";
 import produto2Img from "../../../assets/images/produto2.png";
 import produto3Img from "../../../assets/images/produto3.png";
 import { FocusCards } from "../../../components/ui/focus-cards";
+import { getAllProducts } from "../../../services/productService";
 
-const mockProducts = [
+// Fallback do design: usado quando a API ainda nao tem produtos cadastrados.
+const fallbackProducts = [
   { id: 1, name: "Camiseta igreja", description: "Descrição do produto", image: produto1Img },
   { id: 2, name: "Caneca", description: "Descrição do produto", image: produto2Img },
   { id: 3, name: "Brinco cruz", description: "Descrição do produto", image: produto3Img },
@@ -13,9 +15,21 @@ const mockProducts = [
   { id: 6, name: "Camiseta igreja", description: "Descrição do produto", image: produto1Img },
 ];
 
-export default function ProdutosSection({ products = [] }) {
-  // Ignoramos a prop e usamos o mock do design
-  const displayProducts = mockProducts;
+export default function ProdutosSection() {
+  const [products, setProducts] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    getAllProducts()
+      .then((data) => active && setProducts(data))
+      .catch(() => active && setProducts([]));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Enquanto carrega (null) ou sem produtos na API, mostra o mock do design.
+  const displayProducts = products && products.length > 0 ? products : fallbackProducts;
 
   return (
     <section id="produtos" className="w-full bg-[#FFFFFF] py-16 md:py-24">
@@ -46,10 +60,11 @@ export default function ProdutosSection({ products = [] }) {
         {/* Grid de produtos */}
         <FocusCards 
           cards={displayProducts.map(p => ({
+            id: p.id,
             title: p.name,
             description: p.description,
             src: p.image
-          }))} 
+          }))}
         />
 
       </div>

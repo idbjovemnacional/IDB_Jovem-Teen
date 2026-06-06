@@ -5,6 +5,7 @@ import { fetchAllProducts, handleDeleteProduct } from "../../../services/product
 import useModal from "../../../hooks/useModal";
 import SectionTitle from "../../../components/ui/SectionTitle";
 import EmptyState from "../../../components/ui/EmptyState";
+import Loading from "../../../components/ui/Loading";
 import ProductCard from "../../../components/card/ProductCard";
 import DeleteProductModal from "./components/DeleteProductModal";
 
@@ -13,25 +14,41 @@ export default function AdminProdutos() {
   const navigate = useNavigate();
   const deleteModal = useModal();
   const [products, setProducts] = useState([]);
-
-  const loadProducts = () => {
-    const all = fetchAllProducts();
-    setProducts(all);
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    let active = true;
+    (async () => {
+      try {
+        const all = await fetchAllProducts();
+        if (!active) return;
+        setProducts(all);
+        setError(null);
+      } catch {
+        if (active) setError("Não foi possível carregar os produtos.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
 
   const handleEdit = (id) => {
     navigate(`/admin/produtos/${id}/editar`);
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteModal.data) {
-      handleDeleteProduct(deleteModal.data.id);
-      deleteModal.close();
-      loadProducts();
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.data) return;
+    const result = await handleDeleteProduct(deleteModal.data.id);
+    deleteModal.close();
+    if (result.success) {
+      setReloadKey((k) => k + 1);
+    } else {
+      alert(result.error);
     }
   };
 
@@ -50,8 +67,12 @@ export default function AdminProdutos() {
       {/* Header */}
       <SectionTitle title="Produtos" rightContent={rightContent} />
 
-      {/* Grid de Produtos */}
-      {products.length > 0 ? (
+      {/* Estados */}
+      {loading ? (
+        <Loading />
+      ) : error ? (
+        <EmptyState message={error} />
+      ) : products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
             <ProductCard

@@ -6,8 +6,8 @@ import ProductForm from "../../../components/forms/ProductForm";
 export default function AdminProdutoCreate() {
   const navigate = useNavigate();
 
-  const handleSubmit = (formData) => {
-    const result = handleCreateProduct(formData);
+  const handleSubmit = async (formData) => {
+    const result = await handleCreateProduct(formData);
 
     if (result.success) {
       navigate("/admin/produtos");

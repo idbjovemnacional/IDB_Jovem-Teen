@@ -1,13 +1,47 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { fetchProductById, handleUpdateProduct } from "../../../services/productService";
 import ProductForm from "../../../components/forms/ProductForm";
+import Loading from "../../../components/ui/Loading";
 
 export default function AdminProdutoEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const product = fetchProductById(id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const data = await fetchProductById(id);
+        if (active) setProduct(data);
+      } catch {
+        if (active) setProduct(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const handleSubmit = async (formData) => {
+    const result = await handleUpdateProduct(id, formData);
+
+    if (result.success) {
+      navigate("/admin/produtos");
+    } else {
+      alert(result.error);
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   if (!product) {
     return (
@@ -22,16 +56,6 @@ export default function AdminProdutoEdit() {
       </div>
     );
   }
-
-  const handleSubmit = (formData) => {
-    const result = handleUpdateProduct(id, formData);
-
-    if (result.success) {
-      navigate("/admin/produtos");
-    } else {
-      alert(result.error);
-    }
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
