@@ -1,8 +1,3 @@
-/**
- * Estado vazio genérico para listas/tabelas sem dados.
- *
- * @param {{ message?: string, icon?: React.ReactNode, className?: string }} props
- */
 export default function EmptyState({
   message = "Nenhum item encontrado.",
   icon = null,

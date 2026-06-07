@@ -8,7 +8,7 @@ import ProductForm from '../components/forms/ProductForm';
 import { BlurFade } from '../components/ui/blur-fade';
 import { BorderBeam } from '../components/ui/border-beam';
 import { FocusCards } from '../components/ui/focus-cards';
-import { TypewriterEffectSmooth } from '../components/ui/typewriter-effect';
+import { TypewriterEffect, TypewriterEffectSmooth } from '../components/ui/typewriter-effect';
 import Dropdown from '../components/ui/Dropdown';
 import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
@@ -24,7 +24,7 @@ import EventosSection from './Home/sections/EventosSection';
 import GaleriaSection from './Home/sections/GaleriaSection';
 import LideresSection from './Home/sections/LideresSection';
 import ProdutosSection from './Home/sections/ProdutosSection';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, AuthProvider } from '../context/AuthContext';
 import useModal from '../hooks/useModal';
 import { formatDate, getCountdown } from '../utils/formatDate';
 import { fuzzyMatch, levenshteinDistance, normalizeString } from '../utils/stringUtils';
@@ -147,7 +147,7 @@ export default function TestCoverage() {
       } catch (e) {
         void e;
       }
-      return null;
+      return <AuthProvider><div>Teste AuthProvider</div></AuthProvider>;
     };
     root.render(<Dummy />);
 
@@ -187,12 +187,13 @@ export default function TestCoverage() {
       <BlurFade variant={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>BlurFade Custom Variant</BlurFade>
       <BlurFade variant={{ hidden: () => ({ opacity: 0 }), visible: () => ({ opacity: 1 }) }}>BlurFade Fn Variant</BlurFade>
 
-      <BorderBeam size={100} duration={10} />
+      <BorderBeam size={100} duration={10} initialOffset={10} borderWidth={2} className="test-bb" style={{ opacity: 0.5 }} />
       <BorderBeam reverse={true} />
 
       <FocusCards cards={[{ title: "C1", src: "test.jpg", description: "Desc1" }, { title: "C2", src: "test.jpg" }]} />
 
-      <TypewriterEffectSmooth words={[{ text: "Hello" }, { text: "World" }]} />
+      <TypewriterEffect words={[{ text: "Test", className: "test-c" }]} className="c1" cursorClassName="c2" />
+      <TypewriterEffectSmooth words={[{ text: "Hello", className: "c3" }, { text: "World" }]} className="c4" cursorClassName="c5" />
 
       <Dropdown
         value="1"

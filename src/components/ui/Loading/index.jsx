@@ -1,8 +1,3 @@
-/**
- * Componente de carregamento com spinner.
- *
- * @param {{ size?: "sm" | "md" | "lg", message?: string, className?: string }} props
- */
 export default function Loading({ size = "md", message = "", className = "" }) {
   const sizeClasses = {
     sm: "w-6 h-6 border-2",

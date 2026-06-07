@@ -1,18 +1,5 @@
 import { ChevronLeft } from "lucide-react";
 
-/**
- * Título de seção/página admin com botão de voltar opcional.
- *
- * @param {{
- *   title: string,
- *   onBack?: () => void,
- *   backTitle?: string,
- *   rightContent?: React.ReactNode,
- *   className?: string,
- *   titleClassName?: string,
- *   titleStyle?: object
- * }} props
- */
 export default function SectionTitle({
   title,
   onBack,

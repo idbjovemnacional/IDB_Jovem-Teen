@@ -1,7 +1,3 @@
-/**
- * Estilos compartilhados do componente Modal.
- */
-
 export const MODAL_OVERLAY = "fixed inset-0 z-50 flex items-center justify-center p-4";
 export const MODAL_BACKDROP = "absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in";
 export const MODAL_CONTENT = "relative z-10 animate-scale-in";

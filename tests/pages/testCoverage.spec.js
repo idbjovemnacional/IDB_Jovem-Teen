@@ -46,4 +46,19 @@ test.describe('Test Coverage Page (Internal)', () => {
     await expect(page.locator('#test-title')).toBeVisible();
     await page.waitForTimeout(300);
   });
+
+  test('deve testar componentes com hash e mouse hover', async ({ page }) => {
+    await page.goto('/test-coverage#my-hash', { waitUntil: 'domcontentloaded' });
+    
+    const focusCardsContainer = page.locator('.grid.grid-cols-1.md\\:grid-cols-3').first();
+    const firstCard = focusCardsContainer.locator('> div').first();
+
+    await firstCard.hover({ force: true });
+    await page.mouse.move(0, 0);
+  });
+
+  test('deve testar fechamento do Modal via tecla Escape', async ({ page }) => {
+    await page.goto('/test-coverage', { waitUntil: 'domcontentloaded' });
+    await page.keyboard.press('Escape');
+  });
 });

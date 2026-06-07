@@ -177,4 +177,17 @@ test.describe('Admin - Gerenciamento de Produtos CRUD', () => {
     await page.waitForTimeout(500);
     expect(alertMessage.length).toBeGreaterThan(0);
   });
+
+  test('deve testar upload de imagem no form (ProductForm L23-L30)', async ({ page }) => {
+    await page.goto('/admin/produtos/criar');
+    const inputLink = page.locator('input[type="file"]');
+    await inputLink.setInputFiles({
+      name: 'test.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
+    });
+    
+    // Deve exibir o preview da imagem
+    await expect(page.locator('img[alt="Preview do produto"]')).toBeVisible();
+  });
 });
