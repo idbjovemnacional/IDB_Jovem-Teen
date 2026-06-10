@@ -1,44 +1,78 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Users, CheckCircle, Clock, ExternalLink } from "lucide-react";
 import { fetchEventById } from "../../../services/eventService";
 import {
   fetchVolunteersByEvent,
   handleUpdateStatus,
-  getVolunteerStats,
+  computeVolunteerStats,
 } from "../../../services/volunteerService";
 import StatusBadge from "../components/StatusBadge";
 import SectionTitle from "../../../components/ui/SectionTitle";
 import AdminTable from "../components/AdminTable";
+import Loading from "../../../components/ui/Loading";
+import EmptyState from "../../../components/ui/EmptyState";
 import { StatCard } from "../../../components/card/VolunteerCard";
 
-/* Página: Detalhes de Voluntários de um Evento */
+/* Página: Detalhes de Voluntários (inscrições) de um Evento */
 export default function AdminVoluntarioDetails() {
   const navigate = useNavigate();
   const { eventId } = useParams();
   const [volunteers, setVolunteers] = useState([]);
   const [stats, setStats] = useState({ total: 0, aprovados: 0, pendentes: 0, reprovados: 0 });
   const [event, setEvent] = useState(null);
-
-  const loadData = useCallback(() => {
-    const ev = fetchEventById(eventId);
-    setEvent(ev);
-    const vols = fetchVolunteersByEvent(eventId);
-    setVolunteers(vols);
-    const s = getVolunteerStats(eventId);
-    setStats(s);
-  }, [eventId]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let active = true;
+    (async () => {
+      try {
+        // Evento primeiro: se nao existe, mostra "nao encontrado" sem depender
+        // das inscricoes (cujo erro nao deve mascarar o evento inexistente).
+        const ev = await fetchEventById(eventId);
+        if (!active) return;
+        setEvent(ev);
+        if (ev) {
+          const vols = await fetchVolunteersByEvent(eventId);
+          if (!active) return;
+          setVolunteers(vols);
+          setStats(computeVolunteerStats(vols));
+        }
+        setError(null);
+      } catch {
+        if (active) setError("Não foi possível carregar as inscrições deste evento.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [eventId, reloadKey]);
 
-  const onStatusChange = (volunteerId, newStatus) => {
-    const result = handleUpdateStatus(volunteerId, newStatus);
+  const onStatusChange = async (volunteerId, newStatus) => {
+    const result = await handleUpdateStatus(volunteerId, eventId, newStatus);
     if (result.success) {
-      loadData();
+      setReloadKey((k) => k + 1);
+    } else {
+      alert(result.error);
     }
   };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <SectionTitle title="Voluntários" onBack={() => navigate("/admin/voluntarios")} />
+        <EmptyState message={error} />
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -83,7 +117,7 @@ export default function AdminVoluntarioDetails() {
       </div>
       <div>
         <a
-          href={event.linkFormularioVoluntarios || "#"}
+          href={vol.linkResposta || event.linkFormularioVoluntarios || "#"}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-xs font-bold border-2 border-[#FF6D2C] text-[#FF6D2C] px-3 py-1.5 rounded-md hover:bg-[#FF6D2C] hover:text-white transition-colors"

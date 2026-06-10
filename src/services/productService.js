@@ -1,100 +1,113 @@
-import { mockProducts } from "../data/mockProducts";
+import {
+  listarProdutos,
+  buscarProduto,
+  criarProduto,
+  atualizarProduto,
+  deletarProduto,
+} from "./api/produtoApi";
 
-const STORAGE_KEY = "idb_admin_products";
-
-function loadProducts() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {
-  }
-  return [...mockProducts];
-}
-
-function saveProducts(products) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-}
-
-
-export function getAllProducts() {
-  return loadProducts();
-}
-
-export function getProductById(id) {
-  const products = loadProducts();
-  return products.find((p) => p.id === Number(id)) || null;
-}
-
-export function createProduct(productData) {
-  const products = loadProducts();
-  const newId = products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1;
-
-  const newProduct = {
-    id: newId,
-    image: "/images/produtos/camiseta-igreja.jpg",
-    ...productData,
+/**
+ * Adapters entre o formato da API (pt-BR) e o formato usado pelo front.
+ * API:   { produto_id, nome, descricao, link_produto }
+ * Front: { id, name, description, link, image }
+ */
+function toProduct(api) {
+  if (!api) return null;
+  return {
+    id: api.produto_id,
+    name: api.nome,
+    description: api.descricao ?? "",
+    link: api.link_produto ?? "",
+    // O card usa `image`. A API so tem `link_produto`, entao reaproveitamos.
+    image: api.link_produto ?? "",
   };
-
-  products.unshift(newProduct);
-  saveProducts(products);
-  return newProduct;
 }
 
-export function updateProduct(id, updates) {
-  const products = loadProducts();
-  const index = products.findIndex((p) => p.id === Number(id));
-  if (index === -1) return null;
-
-  products[index] = { ...products[index], ...updates };
-  saveProducts(products);
-  return products[index];
+function toProdutoPayload(form) {
+  return {
+    nome: form.name,
+    descricao: form.description ?? "",
+    link_produto: form.link || form.image || "",
+  };
 }
 
-export function deleteProduct(id) {
-  const products = loadProducts();
-  const filtered = products.filter((p) => p.id !== Number(id));
-  if (filtered.length === products.length) return false;
-  saveProducts(filtered);
+export async function getAllProducts() {
+  const data = await listarProdutos();
+  return data.map(toProduct);
+}
+
+export async function getProductById(id) {
+  const data = await buscarProduto(id);
+  return toProduct(data);
+}
+
+export async function createProduct(productData) {
+  const data = await criarProduto(toProdutoPayload(productData));
+  return toProduct(data);
+}
+
+export async function updateProduct(id, updates) {
+  const data = await atualizarProduto(id, toProdutoPayload(updates));
+  return toProduct(data);
+}
+
+export async function deleteProduct(id) {
+  await deletarProduto(id);
   return true;
 }
 
-export function fetchAllProducts() {
+/* ----- Aliases usados pelas paginas ----- */
+
+export async function fetchAllProducts() {
   return getAllProducts();
 }
 
-export function fetchProductById(id) {
+export async function fetchProductById(id) {
   return getProductById(id);
 }
 
-export function handleCreateProduct(data) {
+/* ----- Handlers com validacao + tratamento de erro ----- */
+
+export async function handleCreateProduct(data) {
   if (!data.name || !data.name.trim()) {
     return { success: false, error: "Nome do produto é obrigatório." };
   }
 
-  const product = createProduct({
-    ...data,
-  });
-
-  return { success: true, product };
+  try {
+    const product = await createProduct(data);
+    return { success: true, product };
+  } catch (err) {
+    return { success: false, error: resolveError(err, "Não foi possível criar o produto.") };
+  }
 }
 
-export function handleUpdateProduct(id, data) {
+export async function handleUpdateProduct(id, data) {
   if (!data.name || !data.name.trim()) {
     return { success: false, error: "Nome do produto é obrigatório." };
   }
 
-  const updated = updateProduct(id, {
-    ...data,
-  });
-
-  if (!updated) {
-    return { success: false, error: "Produto não encontrado." };
+  try {
+    const product = await updateProduct(id, data);
+    return { success: true, product };
+  } catch (err) {
+    return { success: false, error: resolveError(err, "Não foi possível atualizar o produto.") };
   }
-
-  return { success: true, product: updated };
 }
 
-export function handleDeleteProduct(id) {
-  const deleted = deleteProduct(id);
-  return { success: deleted, error: deleted ? null : "Produto não encontrado." };
+export async function handleDeleteProduct(id) {
+  try {
+    await deleteProduct(id);
+    return { success: true, error: null };
+  } catch (err) {
+    return { success: false, error: resolveError(err, "Não foi possível excluir o produto.") };
+  }
+}
+
+/** Extrai mensagem amigavel de um erro do axios sem vazar dados sensiveis. */
+function resolveError(err, fallback) {
+  const status = err?.response?.status;
+  if (status === 401 || status === 403) {
+    return "Sessão expirada ou sem permissão. Faça login novamente.";
+  }
+  return err?.response?.data?.detail || fallback;
 }
