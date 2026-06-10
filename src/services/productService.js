@@ -6,11 +6,6 @@ import {
   deletarProduto,
 } from "./api/produtoApi";
 
-/**
- * Adapters entre o formato da API (pt-BR) e o formato usado pelo front.
- * API:   { produto_id, nome, descricao, link_produto }
- * Front: { id, name, description, link, image }
- */
 function toProduct(api) {
   if (!api) return null;
   return {
@@ -18,7 +13,6 @@ function toProduct(api) {
     name: api.nome,
     description: api.descricao ?? "",
     link: api.link_produto ?? "",
-    // O card usa `image`. A API so tem `link_produto`, entao reaproveitamos.
     image: api.link_produto ?? "",
   };
 }
@@ -56,8 +50,6 @@ export async function deleteProduct(id) {
   return true;
 }
 
-/* ----- Aliases usados pelas paginas ----- */
-
 export async function fetchAllProducts() {
   return getAllProducts();
 }
@@ -65,8 +57,6 @@ export async function fetchAllProducts() {
 export async function fetchProductById(id) {
   return getProductById(id);
 }
-
-/* ----- Handlers com validacao + tratamento de erro ----- */
 
 export async function handleCreateProduct(data) {
   if (!data.name || !data.name.trim()) {
@@ -103,7 +93,6 @@ export async function handleDeleteProduct(id) {
   }
 }
 
-/** Extrai mensagem amigavel de um erro do axios sem vazar dados sensiveis. */
 function resolveError(err, fallback) {
   const status = err?.response?.status;
   if (status === 401 || status === 403) {

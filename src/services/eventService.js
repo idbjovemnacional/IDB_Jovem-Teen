@@ -1,11 +1,6 @@
 import { api } from "./api";
 
-/* Imagem padrão usada enquanto a API não fornece imagem de evento */
 const DEFAULT_EVENT_IMAGE = "/images/galeria/idb-jovem-one.jpg";
-
-/* ------------------------------------------------------------------ */
-/* Helpers de formatação                                              */
-/* ------------------------------------------------------------------ */
 
 function slugify(text) {
   return String(text || "")
@@ -16,12 +11,10 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-/* Slug com o id embutido → permite extrair o id de volta na rota :slug */
 function makeSlug(id, nome) {
   return `${id}-${slugify(nome)}`;
 }
 
-/* Extrai o id numérico de um slug (`12-encontro-...`) ou de um id puro */
 export function parseEventId(slugOrId) {
   const match = String(slugOrId ?? "").match(/^\d+/);
   return match ? Number(match[0]) : null;
@@ -58,7 +51,6 @@ function formatTimeRange(start, end) {
   return s || e || "";
 }
 
-/* ISO → valor de <input type="datetime-local"> (YYYY-MM-DDTHH:MM, hora local) */
 export function toInputDateTime(isoDate) {
   if (!isoDate) return "";
   const d = new Date(isoDate);
@@ -76,11 +68,6 @@ export function isFutureEvent(isoDate) {
   return eventDate >= today;
 }
 
-/* ------------------------------------------------------------------ */
-/* Adapters API <-> front                                             */
-/* ------------------------------------------------------------------ */
-
-/* API (português) → front (inglês) */
 function adaptEvent(apiEvent) {
   if (!apiEvent) return null;
   return {
@@ -111,7 +98,6 @@ function adaptEvent(apiEvent) {
   };
 }
 
-/* front (formulário) → API (corpo do POST/PUT) */
 function toApiEvent(form) {
   const toIso = (v) => (v ? `${v}:00`.slice(0, 19) : null);
   return {
@@ -126,7 +112,6 @@ function toApiEvent(form) {
   };
 }
 
-/* Atividade API → "schedule" do front (suporta as telas pública e admin) */
 function adaptActivity(apiAct) {
   const { day, month } = extractDayMonth(apiAct.horario_inicio);
   return {
@@ -145,7 +130,6 @@ function adaptActivity(apiAct) {
   };
 }
 
-/* schedule do front → corpo da atividade. `eventDate` = data base (ISO) */
 function toApiActivity(form, eventDate) {
   const dia = (eventDate ? String(eventDate) : new Date().toISOString()).slice(0, 10);
   const combinar = (hora) => (hora ? `${dia}T${hora}:00` : null);
@@ -157,14 +141,9 @@ function toApiActivity(form, eventDate) {
   };
 }
 
-/* Mensagem de erro amigável vinda do back ou do axios */
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.detail || error?.message || fallback;
 }
-
-/* ------------------------------------------------------------------ */
-/* Eventos                                                            */
-/* ------------------------------------------------------------------ */
 
 export async function fetchAllEvents() {
   const { data } = await api.get("/evento/");
@@ -231,22 +210,12 @@ export async function handleDeleteEvent(slugOrId) {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Atividades (programação / schedule)                                */
-/* ------------------------------------------------------------------ */
-
 export async function fetchActivities(eventId) {
   const id = parseEventId(eventId);
   const { data } = await api.get(`/evento/${id}/atividade`);
   return data.map(adaptActivity);
 }
 
-/* ------------------------------------------------------------------ */
-/* Galeria (Google Drive via backend)                                 */
-/* ------------------------------------------------------------------ */
-
-/* Galeria de um evento (rota pública). Usa o link_galeria do evento como
-   nome da pasta no Drive. Resposta: [{ id, nome, url_visualizacao }]. */
 export async function fetchEventGallery(eventId) {
   const id = parseEventId(eventId);
   if (!id) return [];

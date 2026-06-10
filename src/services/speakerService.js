@@ -1,13 +1,7 @@
 import { api } from "./api";
 
-/* Imagem padrão quando o participante não tem foto cadastrada */
 const DEFAULT_SPEAKER_IMAGE = "/images/galeria/idb-jovem-one.jpg";
 
-/* ------------------------------------------------------------------ */
-/* Adapters API <-> front                                             */
-/* ------------------------------------------------------------------ */
-
-/* API (banda_palestrante) → front (SpeakerCard / SpeakerList) */
 function adaptSpeaker(apiSpeaker) {
   if (!apiSpeaker) return null;
   return {
@@ -18,7 +12,6 @@ function adaptSpeaker(apiSpeaker) {
   };
 }
 
-/* front (formulário) → API */
 function toApiSpeaker(form) {
   return {
     nome: form.name,
@@ -31,11 +24,6 @@ function getErrorMessage(error, fallback) {
   return error?.response?.data?.detail || error?.message || fallback;
 }
 
-/* ------------------------------------------------------------------ */
-/* Banda / Palestrante                                                */
-/* ------------------------------------------------------------------ */
-
-/* GET / e GET /{id} são públicos */
 export async function fetchSpeakers() {
   const { data } = await api.get("/banda-palestrante/");
   return data.map(adaptSpeaker);
@@ -47,7 +35,7 @@ export async function fetchSpeakerById(participanteId) {
 }
 
 /* Palestrantes/bandas de um evento específico.
-   ⚠️ BLOQUEADO: o backend ainda não expõe a relação evento↔participante
+   BLOQUEADO: o backend ainda não expõe a relação evento↔participante
    (a tabela N:N `participa` existe, mas não há rota). Assim que existir
    `GET /evento/{id}/participantes`, basta trocar a implementação abaixo —
    o restante do front (SpeakerList) já consome este formato. */
@@ -57,7 +45,6 @@ export async function fetchSpeakersByEvent(/* eventId */) {
   return [];
 }
 
-/* POST e DELETE exigem JWT Keycloak (admin/superadmin) */
 export async function handleCreateSpeaker(form) {
   if (!form.name?.trim()) {
     return { success: false, error: "Nome do participante é obrigatório." };

@@ -1,10 +1,5 @@
 import { listarInscricoes } from "./api/formularioApi";
 
-/**
- * Inscricoes (respostas de formulario) de um evento.
- * API:   { evento_id, voluntario_id, nome, email, status, resposta_id, link_resposta }
- * Front: { id, eventId, name, email, status, respostaId, linkResposta }
- */
 function toInscricao(api) {
   return {
     id: api.voluntario_id,
@@ -18,7 +13,6 @@ function toInscricao(api) {
 }
 
 /**
- * Lista as inscricoes de um evento.
  * @param {number|string} eventId
  * @returns {Promise<Array>}
  */
