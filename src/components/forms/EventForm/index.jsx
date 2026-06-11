@@ -20,6 +20,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
     bandas: initialData.bandas || "",
     linkGaleria: initialData.linkGaleria || "",
     linkFormularioVoluntarios: initialData.linkFormularioVoluntarios || "",
+    image: initialData.linkImagem || "",
   });
 
   const handleChange = (e) => {
@@ -213,6 +214,38 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
               className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all uppercase tracking-wide sm:max-w-md"
             />
           </div>
+        </div>
+
+        <hr className="my-5 border-gray-100" />
+
+        {/* Imagem de capa (URL do Drive) */}
+        <div className="mb-1">
+          <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Imagem de Capa</label>
+          <div className="relative">
+            <input
+              type="url"
+              name="image"
+              value={form.image}
+              onChange={handleChange}
+              placeholder="Cole o link da imagem (Google Drive)"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
+            />
+            <ImagePlus size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
+          </div>
+          {form.image?.trim() ? (
+            <div className="mt-3 w-40 h-24 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+              <img
+                src={form.image}
+                alt="Pré-visualização da capa"
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </div>
+          ) : (
+            <p className="mt-1.5 text-xs text-[#1E1E1E]/50">
+              Sem imagem, o evento usa a capa padrão do IDB Jovem.
+            </p>
+          )}
         </div>
 
         <hr className="my-5 border-gray-100" />

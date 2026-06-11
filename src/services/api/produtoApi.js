@@ -6,6 +6,7 @@ import { api } from "../api";
  * @property {string} nome
  * @property {string} descricao
  * @property {string} link_produto
+ * @property {string} link_imagem
  */
 
 /**
@@ -13,6 +14,7 @@ import { api } from "../api";
  * @property {string} nome
  * @property {string} [descricao]
  * @property {string} [link_produto]
+ * @property {string} [link_imagem]
  */
 
 /**
