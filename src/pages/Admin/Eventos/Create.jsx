@@ -10,7 +10,8 @@ export default function AdminEventoCreate() {
     const result = await handleCreateEvent(formData);
 
     if (result.success) {
-      navigate("/admin/eventos");
+      /* Vai direto para a programação do evento recém-criado */
+      navigate(`/admin/eventos/${result.event.id}/programacao`);
     } else {
       alert(result.error);
     }

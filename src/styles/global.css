@@ -325,3 +325,18 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* Campo de hora (componente TimeInput): o indicador nativo do seletor fica
+   invisível e esticado sobre o ícone de relógio customizado, garantindo que o
+   clique abra o seletor nativo em qualquer Chrome/Edge. */
+.time-picker::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 36px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}

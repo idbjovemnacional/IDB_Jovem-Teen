@@ -1,4 +1,5 @@
 import { useState } from "react";
+import TimeInput from "../../../../components/ui/TimeInput";
 
 export default function ActivityInlineForm({ initialData, onSave, onCancel }) {
   const [form, setForm] = useState({
@@ -50,16 +51,14 @@ export default function ActivityInlineForm({ initialData, onSave, onCancel }) {
           placeholder="Descrição da atividade"
           className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
         />
-        <input
-          type="time"
+        <TimeInput
           name="start"
           value={form.start}
           onChange={handleChange}
           className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm text-[#1E1E1E] focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
           required
         />
-        <input
-          type="time"
+        <TimeInput
           name="end"
           value={form.end}
           onChange={handleChange}

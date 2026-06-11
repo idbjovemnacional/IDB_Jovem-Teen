@@ -21,28 +21,46 @@ export function parseEventId(slugOrId) {
   return match ? Number(match[0]) : null;
 }
 
+const pad = (n) => String(n).padStart(2, "0");
+
+/* Lê os componentes literais de uma data ISO ("relógio de parede"), ignorando
+   qualquer fuso (Z/offset). O horário que o usuário digitou é o que aparece —
+   o back guarda os mesmos números e os devolve marcados como UTC, mas aqui não
+   convertemos, evitando o deslocamento (e o "drift" a cada edição). */
+function parseWallClock(value) {
+  if (!value) return null;
+  const m = String(value).match(
+    /(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/
+  );
+  if (!m) return null;
+  return {
+    year: Number(m[1]),
+    month: Number(m[2]),
+    day: Number(m[3]),
+    hour: m[4] ? Number(m[4]) : 0,
+    minute: m[5] ? Number(m[5]) : 0,
+  };
+}
+
 export function formatDate(isoDate) {
-  if (!isoDate) return "";
-  const d = new Date(isoDate);
-  return d.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const p = parseWallClock(isoDate);
+  if (!p) return "";
+  return `${pad(p.day)}/${pad(p.month)}/${p.year}`;
 }
 
 export function extractDayMonth(isoDate) {
-  if (!isoDate) return { day: "--", month: "---" };
-  const d = new Date(isoDate);
-  const day = d.getDate().toString().padStart(2, "0");
+  const p = parseWallClock(isoDate);
+  if (!p) return { day: "--", month: "---" };
+  /* Date construído com componentes locais (sem parse de fuso) só para o nome do mês */
+  const d = new Date(p.year, p.month - 1, p.day);
   const month = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-  return { day, month: month.charAt(0).toUpperCase() + month.slice(1) };
+  return { day: pad(p.day), month: month.charAt(0).toUpperCase() + month.slice(1) };
 }
 
 function formatTime(isoDate) {
-  if (!isoDate) return "";
-  const d = new Date(isoDate);
-  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const p = parseWallClock(isoDate);
+  if (!p) return "";
+  return `${pad(p.hour)}:${pad(p.minute)}`;
 }
 
 function formatTimeRange(start, end) {
@@ -53,17 +71,25 @@ function formatTimeRange(start, end) {
 }
 
 export function toInputDateTime(isoDate) {
-  if (!isoDate) return "";
-  const d = new Date(isoDate);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
+  const p = parseWallClock(isoDate);
+  if (!p) return "";
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
+}
+
+/* Separa um ISO em { day: "YYYY-MM-DD", time: "HH:mm" } (relógio de parede) */
+export function splitDateTime(isoDate) {
+  const p = parseWallClock(isoDate);
+  if (!p) return { day: "", time: "" };
+  return {
+    day: `${p.year}-${pad(p.month)}-${pad(p.day)}`,
+    time: `${pad(p.hour)}:${pad(p.minute)}`,
+  };
 }
 
 export function isFutureEvent(isoDate) {
-  if (!isoDate) return false;
-  const eventDate = new Date(isoDate);
+  const p = parseWallClock(isoDate);
+  if (!p) return false;
+  const eventDate = new Date(p.year, p.month - 1, p.day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return eventDate >= today;

@@ -1,21 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, CalendarDays, Users, Music, Link as LinkIcon, CalendarCog, ImagePlus } from "lucide-react";
-import { toInputDateTime } from "../../../services/eventService";
-import MapPickerModal from "./MapPickerModal";
+import { MapPin, CalendarDays, Users, Music, CalendarCog, ImagePlus } from "lucide-react";
+import LocationPicker from "./LocationPicker";
+import TimeInput from "../../ui/TimeInput";
+import { splitDateTime } from "../../../services/eventService";
+
+const inputClass =
+  "w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all";
+
+/* Base sem w-full para os campos de data/hora (largura controlada via flex) */
+const dateTimeBase =
+  "border border-gray-300 rounded-lg px-3 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all";
 
 export default function EventForm({ initialData = {}, onSubmit, eventId }) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
+
+  const start = splitDateTime(initialData.date);
+  const end = splitDateTime(initialData.endDate);
 
   const [form, setForm] = useState({
     title: initialData.title || "",
     description: initialData.description || "",
     latitude: initialData.latitude ?? "",
     longitude: initialData.longitude ?? "",
-    date: toInputDateTime(initialData.date),
-    endDate: toInputDateTime(initialData.endDate),
+    startDay: start.day,
+    startTime: start.time,
+    endDay: end.day,
+    endTime: end.time,
     palestrantes: initialData.palestrantes || "",
     bandas: initialData.bandas || "",
     linkGaleria: initialData.linkGaleria || "",
@@ -27,11 +39,23 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleLocationChange = (lat, lng) => {
+    setForm((prev) => ({
+      ...prev,
+      latitude: Number(lat.toFixed(6)),
+      longitude: Number(lng.toFixed(6)),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await onSubmit(form);
+      const date =
+        form.startDay && form.startTime ? `${form.startDay}T${form.startTime}` : "";
+      const endDate =
+        form.endDay && form.endTime ? `${form.endDay}T${form.endTime}` : "";
+      await onSubmit({ ...form, date, endDate });
     } finally {
       setSubmitting(false);
     }
@@ -39,15 +63,6 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
 
   const handleCancel = () => {
     navigate("/admin/eventos");
-  };
-
-  const handlePickLocation = (lat, lng) => {
-    setForm((prev) => ({
-      ...prev,
-      latitude: lat.toFixed(6),
-      longitude: lng.toFixed(6),
-    }));
-    setMapOpen(false);
   };
 
   return (
@@ -62,7 +77,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
             value={form.title}
             onChange={handleChange}
             placeholder="Nome do Evento"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
+            className={inputClass}
             required
           />
         </div>
@@ -78,89 +93,77 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
             onChange={handleChange}
             placeholder="Descrição do Evento"
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all resize-none"
+            className={`${inputClass} resize-none`}
           />
         </div>
 
         <hr className="my-5 border-gray-100" />
 
-        {/* Local (coordenadas) — o nome do local é derivado pela API */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-1">
-          <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Latitude</label>
-            <div className="relative">
-              <input
-                type="number"
-                step="any"
-                name="latitude"
-                value={form.latitude}
-                onChange={handleChange}
-                placeholder="-15.7934"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setMapOpen(true)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[#1E1E1E]/40 hover:text-[#FF6D2C] hover:bg-[#FF6D2C]/10 transition-colors"
-                aria-label="Selecionar local no mapa"
-                title="Selecionar no mapa"
-              >
-                <MapPin size={16} />
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Longitude</label>
-            <div className="relative">
-              <input
-                type="number"
-                step="any"
-                name="longitude"
-                value={form.longitude}
-                onChange={handleChange}
-                placeholder="-47.8822"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setMapOpen(true)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[#1E1E1E]/40 hover:text-[#FF6D2C] hover:bg-[#FF6D2C]/10 transition-colors"
-                aria-label="Selecionar local no mapa"
-                title="Selecionar no mapa"
-              >
-                <MapPin size={16} />
-              </button>
-            </div>
-          </div>
+        {/* Local — selecionado direto no mapa */}
+        <div className="mb-1">
+          <label className="flex items-center gap-2 text-sm font-bold text-[#1E1E1E] mb-2">
+            <MapPin size={16} className="text-[#FF6D2C]" />
+            Local do evento
+          </label>
+          <LocationPicker
+            latitude={form.latitude}
+            longitude={form.longitude}
+            initialAddress={initialData.location || ""}
+            onChange={handleLocationChange}
+          />
         </div>
 
         <hr className="my-5 border-gray-100" />
 
-        {/* Início + Término */}
+        {/* Início + Término (data e hora separadas) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-1">
           <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Início</label>
-            <input
-              type="datetime-local"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
-              required
-            />
+            <label className="flex items-center gap-2 text-sm font-bold text-[#1E1E1E] mb-2">
+              <CalendarDays size={16} className="text-[#FF6D2C]" />
+              Início
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                name="startDay"
+                value={form.startDay}
+                onChange={handleChange}
+                className={`${dateTimeBase} flex-1 min-w-0`}
+                required
+              />
+              <TimeInput
+                name="startTime"
+                value={form.startTime}
+                onChange={handleChange}
+                className={dateTimeBase}
+                wrapperClassName="w-[150px]"
+                required
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Término</label>
-            <input
-              type="datetime-local"
-              name="endDate"
-              value={form.endDate}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
-              required
-            />
+            <label className="flex items-center gap-2 text-sm font-bold text-[#1E1E1E] mb-2">
+              <CalendarDays size={16} className="text-[#FF6D2C]" />
+              Término
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                name="endDay"
+                value={form.endDay}
+                onChange={handleChange}
+                className={`${dateTimeBase} flex-1 min-w-0`}
+                required
+              />
+              <TimeInput
+                name="endTime"
+                value={form.endTime}
+                onChange={handleChange}
+                className={dateTimeBase}
+                wrapperClassName="w-[150px]"
+                required
+              />
+            </div>
           </div>
         </div>
 
@@ -177,7 +180,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
                 value={form.palestrantes}
                 onChange={handleChange}
                 placeholder="Palestrantes"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
+                className={`${inputClass} pr-10`}
               />
               <Users size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
             </div>
@@ -191,7 +194,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
                 value={form.bandas}
                 onChange={handleChange}
                 placeholder="Bandas"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
+                className={`${inputClass} pr-10`}
               />
               <Music size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
             </div>
@@ -203,16 +206,14 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
         {/* Link Formulário Voluntários */}
         <div className="mb-1">
           <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Link Formulário Voluntários</label>
-          <div className="relative">
-            <input
-              type="url"
-              name="linkFormularioVoluntarios"
-              value={form.linkFormularioVoluntarios}
-              onChange={handleChange}
-              placeholder="https://forms.gle/..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all uppercase tracking-wide sm:max-w-md"
-            />
-          </div>
+          <input
+            type="url"
+            name="linkFormularioVoluntarios"
+            value={form.linkFormularioVoluntarios}
+            onChange={handleChange}
+            placeholder="https://forms.gle/..."
+            className={`${inputClass} sm:max-w-md`}
+          />
         </div>
 
         <hr className="my-5 border-gray-100" />
@@ -226,7 +227,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
               value={form.linkGaleria}
               onChange={handleChange}
               placeholder="Nome ou link da pasta de fotos"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
+              className={`${inputClass} pr-10`}
             />
             <ImagePlus size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
           </div>
@@ -235,18 +236,26 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
           </p>
         </div>
 
-        {eventId && (
-          <div className="flex flex-wrap gap-3 mt-4 mb-1">
-            <button
-              type="button"
-              onClick={() => navigate(`/admin/eventos/${eventId}/programacao`)}
-              className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-semibold text-[#1E1E1E] hover:border-[#FF6D2C] hover:text-[#FF6D2C] transition-colors bg-white"
-            >
-              Editar Programação do Evento
-              <CalendarCog size={16} />
-            </button>
-          </div>
-        )}
+        <hr className="my-5 border-gray-100" />
+
+        {/* Programação do evento (atividades/horários) — exige um evento já salvo */}
+        <div className="flex flex-col gap-2 mb-1">
+          <label className="block text-sm font-bold text-[#1E1E1E]">Programação do evento</label>
+          <button
+            type="button"
+            disabled={!eventId}
+            onClick={() => eventId && navigate(`/admin/eventos/${eventId}/programacao`)}
+            className="flex items-center gap-2 self-start border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-semibold text-[#1E1E1E] hover:border-[#FF6D2C] hover:text-[#FF6D2C] transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-[#1E1E1E]"
+          >
+            Editar Programação do Evento
+            <CalendarCog size={16} />
+          </button>
+          {!eventId && (
+            <p className="text-xs text-[#1E1E1E]/50">
+              Salve o evento primeiro para adicionar a programação (atividades e horários).
+            </p>
+          )}
+        </div>
 
         <hr className="my-5 border-gray-100" />
 
@@ -268,14 +277,6 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
           </button>
         </div>
       </div>
-
-      <MapPickerModal
-        open={mapOpen}
-        initialLat={form.latitude}
-        initialLng={form.longitude}
-        onConfirm={handlePickLocation}
-        onClose={() => setMapOpen(false)}
-      />
     </form>
   );
 }
