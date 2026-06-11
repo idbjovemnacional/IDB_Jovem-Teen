@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { FaInstagram, FaFacebookF } from "react-icons/fa6";
-import logoSvg from "../../../assets/icons/logo.svg";
+import logoSvg from "../../../assets/icons/Logo.svg";
 
 export default function Footer() {
   return (

@@ -34,15 +34,9 @@ export async function fetchSpeakerById(participanteId) {
   return adaptSpeaker(data);
 }
 
-/* Palestrantes/bandas de um evento específico.
-   BLOQUEADO: o backend ainda não expõe a relação evento↔participante
-   (a tabela N:N `participa` existe, mas não há rota). Assim que existir
-   `GET /evento/{id}/participantes`, basta trocar a implementação abaixo —
-   o restante do front (SpeakerList) já consome este formato. */
-export async function fetchSpeakersByEvent(/* eventId */) {
-  // TODO(backend): const { data } = await api.get(`/evento/${eventId}/participantes`);
-  //                return data.map(adaptSpeaker);
-  return [];
+export async function fetchSpeakersByEvent(eventId) {
+  const { data } = await api.get(`/evento/${eventId}/participantes`);
+  return data.map(adaptSpeaker);
 }
 
 export async function handleCreateSpeaker(form) {
