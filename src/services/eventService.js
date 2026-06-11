@@ -109,6 +109,30 @@ export function isOngoingOrFuture(event) {
   return endDate >= today;
 }
 
+/* Monta a URL do Google Calendar para criar o evento na conta do usuário.
+   Usa o formato "TEMPLATE" (pré-preenchido): o usuário revisa e salva no próprio
+   calendário. As datas vão como relógio de parede (sem Z), no fuso do usuário. */
+export function buildGoogleCalendarUrl(event) {
+  if (!event?.date) return null;
+  const toGCal = (iso) => {
+    const { day, time } = splitDateTime(iso);
+    if (!day) return null;
+    return `${day.replace(/-/g, "")}T${(time || "00:00").replace(":", "")}00`;
+  };
+  const start = toGCal(event.date);
+  const end = toGCal(event.endDate || event.date) || start;
+  if (!start) return null;
+
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title || "Evento",
+    dates: `${start}/${end}`,
+    details: event.description || "",
+    location: event.location || "",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 function adaptEvent(apiEvent) {
   if (!apiEvent) return null;
   return {

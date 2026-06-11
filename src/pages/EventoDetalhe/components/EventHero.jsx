@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Building2, Clock } from "lucide-react";
+import { ArrowLeft, Building2, Clock, CalendarPlus } from "lucide-react";
+import { buildGoogleCalendarUrl } from "../../../services/eventService";
 
 export default function EventHero({ event }) {
   const navigate = useNavigate();
+  const googleCalendarUrl = buildGoogleCalendarUrl(event);
 
   return (
     <section className="w-full bg-[#FDF3EA]">
@@ -42,6 +44,19 @@ export default function EventHero({ event }) {
                 {event.time}
               </span>
             </div>
+
+            {/* Adicionar ao Google Calendar do usuário */}
+            {googleCalendarUrl && (
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 self-start text-sm font-bold text-black bg-[#F5E6DA] hover:bg-[#ead3c1] px-4 py-2.5 rounded-xl transition-colors shadow-sm mt-1"
+              >
+                <CalendarPlus size={18} className="text-[#FF6D2C]" />
+                Adicionar ao Google Calendar
+              </a>
+            )}
           </div>
 
           {/* Lado direito — imagem */}

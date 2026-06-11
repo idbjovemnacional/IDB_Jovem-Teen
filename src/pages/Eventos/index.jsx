@@ -247,18 +247,6 @@ export default function Eventos() {
               </button>
             </div>
 
-            {/* Google Calendar CTA */}
-            <div className="flex justify-center mt-8">
-              <a
-                href="https://calendar.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-bold text-black bg-[#F5E6DA] hover:bg-[#ead3c1] px-4 py-2.5 rounded-xl transition-colors shadow-sm"
-              >
-                <span className="text-xl">📅</span>
-                Adicionar ao Google Calendar
-              </a>
-            </div>
           </div>
         </section>
       )}
