@@ -3,8 +3,8 @@ import cultoImg from "../../../assets/images/culto.png";
 import { TypewriterEffect } from "../../../components/ui/typewriter-effect";
 
 export default function SobreSection() {
-  const fullText = "A IDB Jovem & Teens é um movimento feito para quem busca viver a fé de forma real e com propósito. Com encontros, eventos e uma comunidade acolhedora, é o lugar ideal para crescer, fazer amizades e se conectar com Deus.";
-  
+  const fullText = "A IDB Jovem & Teen é um movimento feito para quem busca viver a fé de forma real e com propósito. Com encontros, eventos e uma comunidade acolhedora, é o lugar ideal para crescer, fazer amizades e se conectar com Deus.";
+
   const bodyWords = fullText.split(" ").map((word) => ({
     text: word + "\u00A0",
     className: "text-black text-base md:text-lg font-normal",
@@ -29,13 +29,13 @@ export default function SobreSection() {
         >
           CONHEÇA O IDB
           <br />
-          JOVEM & TEENS
+          JOVEM & TEEN
         </h2>
         <div className="max-w-md w-full mx-auto text-black text-base md:text-lg leading-relaxed mb-10 text-left">
-          <TypewriterEffect 
-            words={bodyWords} 
-            className="text-left font-normal text-base md:text-lg" 
-            cursorClassName="bg-black" 
+          <TypewriterEffect
+            words={bodyWords}
+            className="text-left font-normal text-base md:text-lg"
+            cursorClassName="bg-black"
           />
         </div>
         <a

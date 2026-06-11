@@ -75,7 +75,7 @@ test.describe('Página de Galeria', () => {
     }
 
     // Verifica alt text específico
-    await expect(imagens.first()).toHaveAttribute('alt', 'IDB Jovem & Teens One - São Paulo, SP');
+    await expect(imagens.first()).toHaveAttribute('alt', 'IDB Jovem & Teen One - São Paulo, SP');
   });
 
   test('deve renderizar todos os 9 cards de galeria do mock', async ({ page }) => {

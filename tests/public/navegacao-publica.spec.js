@@ -29,7 +29,7 @@ test.describe('Fluxos de Navegação Pública (Cross-page)', () => {
     }
 
     // 6. Volta para Home clicando na Logo
-    await page.getByRole('link', { name: 'IDB Jovem & Teens' }).click();
+    await page.getByRole('link', { name: 'IDB Jovem & Teen' }).click();
     await expect(page).toHaveURL('/');
   });
 

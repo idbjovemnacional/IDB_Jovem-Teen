@@ -92,8 +92,8 @@ export default function ProcessoVoluntario() {
                     {/* Descrição */}
                     <div
                       className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive
-                          ? "max-h-40 opacity-100 mt-3"
-                          : "max-h-0 opacity-0"
+                        ? "max-h-40 opacity-100 mt-3"
+                        : "max-h-0 opacity-0"
                         }`}
                     >
                       <p className="text-[15px] md:text-base text-[#E4E4E4] font-medium leading-relaxed pr-4 md:pr-12">
@@ -120,7 +120,7 @@ export default function ProcessoVoluntario() {
             <div className="rounded-[2rem] overflow-hidden shadow-xl border-4 border-transparent">
               <img
                 src={processoImg}
-                alt="Voluntários IDB Jovem & Teens"
+                alt="Voluntários IDB Jovem & Teen"
                 className="w-full h-[400px] md:h-[500px] object-cover"
               />
             </div>

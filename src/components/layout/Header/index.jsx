@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Search, XCircle, MapPin, Menu, X, User } from "lucide-react";
 import { NAV_LINKS } from "./header.constants";
-import logoSvg from "../../../assets/icons/Logo.svg";
+const logoSvg = "/logo.svg";
 
 export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,7 +60,7 @@ export default function Header() {
       <div className="w-full min-h-[70px] md:min-h-[82px] bg-white flex items-center justify-between px-4 sm:px-6 md:px-12 py-3 md:py-6 shadow-md">
         {/* Logo */}
         <Link to="/" className="shrink-0 transition-all duration-300 hover:scale-105">
-          <img src={logoSvg} alt="IDB Jovem & Teens" className="h-[40px] w-auto md:h-[55px]" />
+          <img src={logoSvg} alt="IDB Jovem & Teen" className="h-[40px] w-auto md:h-[55px]" />
         </Link>
 
         {/* Desktop: Search + Eventos Próximos + Nav */}
@@ -189,8 +189,8 @@ export default function Header() {
                 {({ isActive }) => (
                   <div
                     className={`h-[50px] rounded-xl px-4 flex items-center transition-all duration-200 ${!isHashLink && isActive
-                        ? "bg-[#FF6D2C]/10 text-[#FF6D2C]"
-                        : "text-[#1E1E1E] hover:bg-[#FDF3EA]"
+                      ? "bg-[#FF6D2C]/10 text-[#FF6D2C]"
+                      : "text-[#1E1E1E] hover:bg-[#FDF3EA]"
                       }`}
                   >
                     <span className="text-[16px] font-semibold">{item.label}</span>

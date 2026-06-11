@@ -6,7 +6,7 @@ export const mockVolunteers = [
   { id: 4, eventId: 1, name: "Pedro Henrique Souza", email: "pedro.souza@gmail.com", status: "pendente" },
   { id: 5, eventId: 1, name: "Juliana Ferreira", email: "juliana.f@gmail.com", status: "reprovado" },
 
-  // Evento 2 — IDB Jovem & Teens One
+  // Evento 2 — IDB Jovem & Teen One
   { id: 6, eventId: 2, name: "Rafael Mendes", email: "rafael.mendes@gmail.com", status: "aprovado" },
   { id: 7, eventId: 2, name: "Camila Rodrigues", email: "camila.r@gmail.com", status: "pendente" },
   { id: 8, eventId: 2, name: "Thiago Santos", email: "thiago.santos@gmail.com", status: "aprovado" },

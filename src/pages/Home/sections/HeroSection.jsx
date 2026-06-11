@@ -34,7 +34,7 @@ export default function HeroSection({ countdown, nextEvent }) {
             textShadow: "-4px 2px 0px #D5650D, 2px 2px 4px rgba(0,0,0,0.5)",
           }}
         >
-          IDB JOVEM & TEENS
+          IDB JOVEM & TEEN
         </h1>
 
         {/* Countdown */}

@@ -9,11 +9,11 @@ test.describe('Admin Sidebar e Navegação', () => {
 
   test('deve exibir a sidebar no desktop com a logo e título', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    
+
     const sidebar = page.locator('aside');
     await expect(sidebar).toBeVisible();
 
-    const logo = sidebar.getByAltText('IDB Jovem & Teens');
+    const logo = sidebar.getByAltText('IDB Jovem & Teen');
     await expect(logo).toBeVisible();
 
     await expect(sidebar.getByText('Dashboard', { exact: true })).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('Admin Sidebar e Navegação', () => {
 
   test('deve exibir todos os links de navegação na sidebar', async ({ page }) => {
     const sidebar = page.locator('aside');
-    
+
     await expect(sidebar.getByRole('link', { name: /Home/i })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: /Eventos/i })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: /Voluntários/i })).toBeVisible();
@@ -31,14 +31,14 @@ test.describe('Admin Sidebar e Navegação', () => {
   test('deve realizar logout ao clicar no botão Sair', async ({ page }) => {
     const sidebar = page.locator('aside');
     const btnSair = sidebar.getByRole('button', { name: /Sair/i });
-    
+
     await btnSair.click();
     await expect(page).toHaveURL(/\/login/);
   });
 
   test('deve exibir o menu mobile e a sidebar (MobileView)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    
+
     const mobileHeader = page.locator('div').filter({ hasText: /^Painel Admin$/ }).first();
     await expect(mobileHeader).toBeVisible();
 

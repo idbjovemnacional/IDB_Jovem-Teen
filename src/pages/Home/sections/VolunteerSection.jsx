@@ -15,7 +15,7 @@ const reasons = [
       "Ninguém despreze a tua mocidade; mas sê o exemplo dos fiéis, na palavra, no trato, no amor, no espírito, na fé, na pureza. Persiste em ler, exortar e ensinar, até que eu vá. Não desprezes o dom que há em ti, o qual te foi dado por profecia, com a imposição das mãos do presbitério.",
     quoteAuthor: "1 Timóteo 4:12-14 ARC",
     image: idbJovemOneImg,
-    imageCaption: "IDB JOVEM & TEENS ONE",
+    imageCaption: "IDB JOVEM & TEEN ONE",
     imageRight: true,
   },
   {

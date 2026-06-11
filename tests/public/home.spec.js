@@ -6,7 +6,7 @@ test.describe('Página Inicial (Home)', () => {
   });
 
   test('HeroSection - deve exibir o título e contadores', async ({ page }) => {
-    const titulo = page.getByRole('heading', { name: 'IDB JOVEM & TEENS', exact: true });
+    const titulo = page.getByRole('heading', { name: 'IDB JOVEM & TEEN', exact: true });
     await expect(titulo).toBeVisible();
 
     await expect(page.getByText('dias', { exact: true })).toBeVisible();

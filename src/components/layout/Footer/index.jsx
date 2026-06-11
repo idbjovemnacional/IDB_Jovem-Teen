@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { FaInstagram, FaFacebookF } from "react-icons/fa6";
-import logoSvg from "../../../assets/icons/Logo.svg";
+const logoSvg = "/logo.svg";
 
 export default function Footer() {
   return (
@@ -44,7 +44,7 @@ export default function Footer() {
 
           {/* Centro - Logo e Missão */}
           <div className="flex items-center gap-5 justify-center">
-            <img src={logoSvg} alt="IDB Jovem & Teens" className="w-[70px] h-auto shrink-0" />
+            <img src={logoSvg} alt="IDB Jovem & Teen" className="w-[70px] h-auto shrink-0" />
             <p className="text-neutral-600 text-sm leading-relaxed max-w-[280px] font-bold text-left">
               Inspirar e capacitar as novas gerações a viverem o propósito cristão com autenticidade, unindo fé, protagonismo e serviço para transformar a sociedade.
             </p>

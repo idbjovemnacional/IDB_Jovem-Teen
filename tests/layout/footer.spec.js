@@ -35,7 +35,7 @@ test.describe('Footer Layout', () => {
   test('deve renderizar a logo e o texto de missão', async ({ page }) => {
     const footer = page.locator('footer#contato');
 
-    const logo = footer.getByAltText('IDB Jovem & Teens');
+    const logo = footer.getByAltText('IDB Jovem & Teen');
     await expect(logo).toBeVisible();
 
     const missao = footer.getByText(/Inspirar e capacitar as novas gerações/i);
