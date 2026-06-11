@@ -9,8 +9,11 @@ export default function ProductForm({ initialData = {}, onSubmit }) {
     name: initialData.name || "",
     description: initialData.description || "",
     link: initialData.link || "",
-    image: initialData.image || "",
+    imageName: initialData.imageName || "",
   });
+
+  // URL já resolvida pelo backend (só existe na edição) — usada só p/ preview.
+  const savedImageUrl = initialData.image || "";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,32 +78,36 @@ export default function ProductForm({ initialData = {}, onSubmit }) {
 
         <hr className="my-5 border-gray-100" />
 
-        {/* Foto do produto (URL do Drive) */}
+        {/* Foto do produto (nome do arquivo na pasta idbj/produtos do Drive) */}
         <div className="mb-1">
           <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Foto do Produto</label>
           <div className="relative">
             <input
-              type="url"
-              name="image"
-              value={form.image}
+              type="text"
+              name="imageName"
+              value={form.imageName}
               onChange={handleChange}
-              placeholder="Cole o link da imagem (Google Drive)"
+              placeholder="Nome do arquivo (ex.: camiseta.jpg)"
               className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 bg-[#FFF8F3] text-sm text-[#1E1E1E] placeholder-[#1E1E1E]/40 focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all"
             />
             <ImagePlus size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
           </div>
+          <p className="mt-1.5 text-xs text-[#1E1E1E]/50">
+            Informe apenas o nome do arquivo. A imagem deve estar na pasta
+            <span className="font-semibold"> idbj/produtos</span> do Google Drive.
+          </p>
         </div>
 
-        {/* Preview da imagem */}
-        {form.image?.trim() && (
+        {/* Preview da imagem atual (só na edição, após o backend resolver) */}
+        {savedImageUrl && (
           <>
             <hr className="my-5 border-gray-100" />
             <div className="mb-1">
-              <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Preview</label>
+              <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Imagem atual</label>
               <div className="w-32 h-32 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
                 <img
-                  src={form.image}
-                  alt="Preview do produto"
+                  src={savedImageUrl}
+                  alt="Imagem atual do produto"
                   className="w-full h-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                 />

@@ -6,7 +6,8 @@ import { api } from "../api";
  * @property {string} nome
  * @property {string} descricao
  * @property {string} link_produto
- * @property {string} link_imagem
+ * @property {string} imagem_nome - nome do arquivo na pasta idbj/produtos
+ * @property {string} imagem_url - URL de visualização resolvida pelo backend
  */
 
 /**
@@ -14,7 +15,7 @@ import { api } from "../api";
  * @property {string} nome
  * @property {string} [descricao]
  * @property {string} [link_produto]
- * @property {string} [link_imagem]
+ * @property {string} [imagem_nome]
  */
 
 /**

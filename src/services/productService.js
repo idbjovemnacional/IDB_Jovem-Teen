@@ -13,7 +13,9 @@ function toProduct(api) {
     name: api.nome,
     description: api.descricao ?? "",
     link: api.link_produto ?? "",
-    image: api.link_imagem ?? "",
+    // imageName = nome do arquivo (p/ o form); image = URL resolvida (p/ exibir)
+    imageName: api.imagem_nome ?? "",
+    image: api.imagem_url ?? "",
   };
 }
 
@@ -22,7 +24,7 @@ function toProdutoPayload(form) {
     nome: form.name,
     descricao: form.description ?? "",
     link_produto: form.link || "",
-    link_imagem: form.image || "",
+    imagem_nome: form.imageName || "",
   };
 }
 

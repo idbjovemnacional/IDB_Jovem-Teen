@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, CalendarDays, Users, Music, Link as LinkIcon, CalendarCog, ImagePlus } from "lucide-react";
 import { toInputDateTime } from "../../../services/eventService";
+import { toDriveImageUrl } from "../../../utils/driveImage";
 import MapPickerModal from "./MapPickerModal";
 
 export default function EventForm({ initialData = {}, onSubmit, eventId }) {
@@ -235,7 +236,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
           {form.image?.trim() ? (
             <div className="mt-3 w-40 h-24 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
               <img
-                src={form.image}
+                src={toDriveImageUrl(form.image)}
                 alt="Pré-visualização da capa"
                 className="w-full h-full object-cover"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}

@@ -1,5 +1,6 @@
 import { api } from "./api";
 import defaultEventImage from "../assets/images/idbJovemOne.png";
+import { toDriveImageUrl } from "../utils/driveImage";
 
 const DEFAULT_EVENT_IMAGE = defaultEventImage;
 
@@ -88,7 +89,7 @@ function adaptEvent(apiEvent) {
     /* URL da imagem de capa (Drive). image = valor exibido (com fallback);
        linkImagem = valor cru para o formulário (vazio quando não há). */
     linkImagem: apiEvent.link_imagem || "",
-    image: apiEvent.link_imagem || DEFAULT_EVENT_IMAGE,
+    image: toDriveImageUrl(apiEvent.link_imagem) || DEFAULT_EVENT_IMAGE,
     /* Campos ainda não fornecidos pela API de evento → defaults seguros */
     category: "Evento",
     featured: false,
