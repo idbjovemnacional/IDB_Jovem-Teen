@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { isFutureEvent } from "../../../services/eventService";
 
 export default function CalendarioSection({ events = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -21,10 +22,14 @@ export default function CalendarioSection({ events = [] }) {
   const currentMonthName = monthNames[currentDate.getMonth()];
   const currentYear = currentDate.getFullYear();
 
-  // Filter events for the current month and year
+  // Filtra eventos do mês/ano selecionado, mantendo apenas os que ainda vão acontecer
   const monthEvents = events.filter(event => {
     const eventDate = new Date(event.date);
-    return eventDate.getMonth() === currentDate.getMonth() && eventDate.getFullYear() === currentYear;
+    return (
+      eventDate.getMonth() === currentDate.getMonth() &&
+      eventDate.getFullYear() === currentYear &&
+      isFutureEvent(event.date)
+    );
   }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (

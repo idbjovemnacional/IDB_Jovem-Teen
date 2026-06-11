@@ -1,10 +1,28 @@
+import { useEffect, useState } from "react";
+import { fetchAllEvents, splitDateTime } from "../../../../services/eventService";
+
 const WEEK_DAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
+const pad = (n) => String(n).padStart(2, "0");
+
+/* Paleta de cores estável: cada evento sempre cai na mesma cor (pelo id). */
+const EVENT_COLORS = [
+  "bg-blue-200/70 text-blue-900",
+  "bg-green-200/70 text-green-900",
+  "bg-purple-200/70 text-purple-900",
+  "bg-amber-200/70 text-amber-900",
+  "bg-pink-200/70 text-pink-900",
+];
+
+function colorForEvent(id) {
+  return EVENT_COLORS[Math.abs(Number(id) || 0) % EVENT_COLORS.length];
+}
+
+/* Dias da semana atual (DOM → SÁB) com a chave "YYYY-MM-DD" para casar com os eventos. */
 function generateCalendarDays() {
   const today = new Date();
-  const dayOfWeek = today.getDay();
   const startDate = new Date(today);
-  startDate.setDate(today.getDate() - dayOfWeek);
+  startDate.setDate(today.getDate() - today.getDay());
 
   const days = [];
   for (let i = 0; i < 7; i++) {
@@ -12,16 +30,49 @@ function generateCalendarDays() {
     d.setDate(startDate.getDate() + i);
     days.push({
       day: d.getDate(),
+      key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
       isToday: d.toDateString() === today.toDateString(),
     });
   }
   return days;
 }
 
+/* Converte um evento nos dados de posição da grade: coluna (dia da semana),
+   primeira e última hora cobertas. Retorna null se cair fora da semana exibida. */
+function placeEvent(event, days) {
+  const start = splitDateTime(event.date);
+  const end = splitDateTime(event.endDate || event.date);
+  const col = days.findIndex((d) => d.key === start.day);
+  if (col === -1) return null;
+
+  const startHour = Number(start.time.slice(0, 2));
+  const [endH, endM] = end.time.split(":").map(Number);
+  /* termina às HH:00 não ocupa a linha HH inteira; garante ao menos a linha de início */
+  let lastHour = endM > 0 ? endH : endH - 1;
+  if (!Number.isFinite(lastHour) || lastHour < startHour) lastHour = startHour;
+
+  return { col, startHour, lastHour, title: event.title, id: event.id };
+}
+
 /* Componente Calendário Mini */
 export default function CalendarMini() {
   const days = generateCalendarDays();
   const hours = Array.from({ length: 10 }, (_, i) => i + 8);
+  const [placed, setPlaced] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchAllEvents()
+      .then((events) => {
+        if (!active) return;
+        setPlaced(events.map((e) => placeEvent(e, days)).filter(Boolean));
+      })
+      .catch(() => active && setPlaced([]));
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -53,22 +104,25 @@ export default function CalendarMini() {
           <div key={hour} className="flex items-stretch min-h-[28px] border-b border-gray-50">
             <span className="text-[10px] text-[#1E1E1E]/30 w-10 shrink-0 pt-1">{hour}:00</span>
             <div className="flex-1 grid grid-cols-7 gap-0.5">
-              {WEEK_DAYS.map((_, i) => {
-                // Blocos coloridos aleatórios para efeito visual
-                const hasEvent = Math.random() > 0.65;
-                const colors = [
-                  "bg-blue-200/60",
-                  "bg-green-200/60",
-                  "bg-purple-200/60",
-                  "bg-amber-200/60",
-                  "bg-pink-200/60",
-                ];
-                const color = colors[Math.floor(Math.random() * colors.length)];
+              {WEEK_DAYS.map((_, col) => {
+                const ev = placed.find(
+                  (p) => p.col === col && hour >= p.startHour && hour <= p.lastHour
+                );
+                if (!ev) return <div key={col} className="rounded-sm" />;
+                const isStart = hour === ev.startHour;
+                const isEnd = hour === ev.lastHour;
                 return (
                   <div
-                    key={i}
-                    className={`rounded-sm ${hasEvent ? color : ""}`}
-                  />
+                    key={col}
+                    title={ev.title}
+                    className={`px-1 overflow-hidden ${colorForEvent(ev.id)} ${isStart ? "rounded-t-sm" : ""} ${isEnd ? "rounded-b-sm" : ""}`}
+                  >
+                    {isStart && (
+                      <span className="block text-[8px] font-semibold leading-[28px] truncate">
+                        {ev.title}
+                      </span>
+                    )}
+                  </div>
                 );
               })}
             </div>
