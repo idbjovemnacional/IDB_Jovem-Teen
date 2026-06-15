@@ -23,7 +23,6 @@ export default function AdminVoluntarioDetails() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -50,13 +49,21 @@ export default function AdminVoluntarioDetails() {
     return () => {
       active = false;
     };
-  }, [eventId, reloadKey]);
+  }, [eventId]);
 
   const onStatusChange = async (volunteerId, newStatus) => {
+    const previous = volunteers;
+
+    const updated = previous.map((v) =>
+      v.id === volunteerId ? { ...v, status: newStatus } : v
+    );
+    setVolunteers(updated);
+    setStats(computeVolunteerStats(updated));
+
     const result = await handleUpdateStatus(volunteerId, eventId, newStatus);
-    if (result.success) {
-      setReloadKey((k) => k + 1);
-    } else {
+    if (!result.success) {
+      setVolunteers(previous);
+      setStats(computeVolunteerStats(previous));
       alert(result.error);
     }
   };
