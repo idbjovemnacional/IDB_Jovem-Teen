@@ -45,16 +45,6 @@ export default function ProdutosSection() {
           <p className="text-[#FF6D2C] font-handwriting mt-1" style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)" }}>
             À venda em nossos eventos ou online!
           </p>
-          <div className="mt-8 flex justify-center">
-            <a
-              href="https://hotmart.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-[#FF6D2C] hover:bg-[#E65C18] text-white font-bold px-8 py-3 rounded-full transition-all text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 duration-300"
-            >
-              Comprar na Hotmart
-            </a>
-          </div>
         </div>
 
         {/* Grid de produtos */}

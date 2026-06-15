@@ -93,13 +93,9 @@ test.describe('Página Inicial (Home)', () => {
     await expect(btnQueroSerVoluntario).toBeVisible();
   });
 
-  test('ProdutosSection - deve exibir produtos e link para Hotmart', async ({ page }) => {
+  test('ProdutosSection - deve exibir a seção de produtos', async ({ page }) => {
     const titulo = page.getByRole('heading', { name: /Conheça nossos produtos/i });
     await expect(titulo).toBeVisible();
-
-    const btnHotmart = page.getByRole('link', { name: /Comprar na Hotmart/i });
-    await expect(btnHotmart).toBeVisible();
-    await expect(btnHotmart).toHaveAttribute('href', 'https://hotmart.com');
   });
 
   test('GaleriaSection - deve exibir o carrossel da galeria e link "Ver mais +"', async ({ page }) => {
