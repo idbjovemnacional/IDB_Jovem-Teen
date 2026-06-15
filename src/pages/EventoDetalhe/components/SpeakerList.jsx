@@ -9,7 +9,7 @@ export default function SpeakerList({ speakers = [] }) {
           className="font-handwriting text-white mb-10"
           style={{ fontSize: "clamp(2rem, 5vw, 3rem)" }}
         >
-          Palestrantes
+          Convidados
         </h2>
 
         {/* Grid de palestrantes */}

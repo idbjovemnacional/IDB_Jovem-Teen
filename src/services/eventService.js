@@ -228,7 +228,10 @@ export async function fetchEventById(slugOrId) {
   try {
     const { data: partData } = await api.get(`/evento/${id}/participantes`);
     if (partData && partData.length > 0) {
-      event.palestrantes = partData.map((p) => p.nome).join(", ");
+      const palestrantes = partData.filter(p => p.profissao !== "Banda");
+      const bandas = partData.filter(p => p.profissao === "Banda");
+      event.palestrantes = palestrantes.map((p) => p.nome).join(", ");
+      event.bandas = bandas.map((p) => p.nome).join(", ");
     }
   } catch (err) {
     // ignorar falha ao buscar participantes
@@ -245,31 +248,45 @@ export async function getGroupedEvents() {
 
 export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Campanha Nacional", "Outros"];
 
-async function syncEventSpeakers(eventId, palestrantesString) {
+async function syncEventSpeakers(eventId, palestrantesString, bandasString) {
   try {
-    const names = (palestrantesString || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const palNames = (palestrantesString || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const bandaNames = (bandasString || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const allNames = [...palNames, ...bandaNames];
 
     const { data: linkedData } = await api.get(`/evento/${eventId}/participantes`);
     const linkedSpeakers = linkedData.map((p) => ({ id: p.participante_id, name: p.nome }));
 
     for (const linked of linkedSpeakers) {
-      if (!names.find((n) => n.toLowerCase() === linked.name.toLowerCase())) {
+      if (!allNames.find((n) => n.toLowerCase() === linked.name.toLowerCase())) {
         await api.delete(`/evento/${eventId}/participantes/${linked.id}`).catch(() => { });
       }
     }
 
-    if (names.length === 0) return;
+    if (allNames.length === 0) return;
 
     const allSpeakers = await fetchSpeakers().catch(() => []);
 
-    for (const name of names) {
+    for (const name of palNames) {
       let speaker = allSpeakers.find((s) => s.name.toLowerCase() === name.toLowerCase());
-
+      
       if (!speaker) {
         const res = await handleCreateSpeaker({ name, role: "Palestrante" });
+        if (res.success) {
+          speaker = res.speaker;
+        }
+      }
+
+      if (speaker && !linkedSpeakers.find((s) => s.id === speaker.id)) {
+        await api.post(`/evento/${eventId}/participantes/${speaker.id}`).catch(() => { });
+      }
+    }
+
+    for (const name of bandaNames) {
+      let speaker = allSpeakers.find((s) => s.name.toLowerCase() === name.toLowerCase());
+      
+      if (!speaker) {
+        const res = await handleCreateSpeaker({ name, role: "Banda" });
         if (res.success) {
           speaker = res.speaker;
         }
@@ -300,7 +317,7 @@ export async function handleCreateEvent(data) {
   try {
     const { data: created } = await api.post("/evento/", toApiEvent(data));
     const newEvent = adaptEvent(created);
-    await syncEventSpeakers(newEvent.id, data.palestrantes);
+    await syncEventSpeakers(newEvent.id, data.palestrantes, data.bandas);
     return { success: true, event: newEvent };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao criar evento.") };
@@ -318,7 +335,7 @@ export async function handleUpdateEvent(slugOrId, data) {
   try {
     const { data: updated } = await api.put(`/evento/${id}`, toApiEvent(data));
     const updEvent = adaptEvent(updated);
-    await syncEventSpeakers(id, data.palestrantes);
+    await syncEventSpeakers(id, data.palestrantes, data.bandas);
     return { success: true, event: updEvent };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao atualizar evento.") };

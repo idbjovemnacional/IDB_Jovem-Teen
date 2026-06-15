@@ -89,7 +89,7 @@ export default function EventosSection({ events = [] }) {
               />
 
               <h3
-                className="font-black uppercase leading-[0.95] text-white text-center tracking-tighter w-full line-clamp-3 sm:line-clamp-4"
+                className="font-black uppercase leading-none text-white text-center tracking-tighter w-full line-clamp-3 sm:line-clamp-4 py-1"
                 style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)", transform: "scaleY(1.05)" }}
                 title={featured.title}
               >

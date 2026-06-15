@@ -3,18 +3,18 @@ import LiderService from "../../../services/liderService";
 
 const STATIC_CURRENT_LEADERS = [
   {
-    lider_id: 'static_2',
-    nome: 'Raquel Gomes',
-    cargo: 'Diretora Nacional e regional de adolescentes',
-    imagem_url: '/praRaquel.jpeg',
-    is_antigo: false,
-    ordem: 1,
-  },
-  {
     lider_id: 'static_1',
     nome: 'Bp. Samuel Tavares',
     cargo: 'Diretor Nacional e regional de jovens',
     imagem_url: '/prSamuel.jpeg',
+    is_antigo: false,
+    ordem: 1,
+  },
+  {
+    lider_id: 'static_2',
+    nome: 'Raquel Gomes',
+    cargo: 'Diretora Nacional e regional de adolescentes',
+    imagem_url: '/praRaquel.jpeg',
     is_antigo: false,
     ordem: 2,
   },
