@@ -5,7 +5,7 @@ const STATIC_CURRENT_LEADERS = [
   {
     lider_id: 'static_1',
     nome: 'Bp. Samuel Tavares',
-    cargo: 'Diretor Nacional e regional de jovens',
+    cargo: 'Diretor Nacional e Regional de Jovens Região Central',
     imagem_url: '/prSamuel.jpeg',
     is_antigo: false,
     ordem: 1,
@@ -13,7 +13,7 @@ const STATIC_CURRENT_LEADERS = [
   {
     lider_id: 'static_2',
     nome: 'Pra. Raquel Gomes',
-    cargo: 'Diretora Nacional e regional de adolescentes',
+    cargo: 'Diretora Nacional e Regional de Adolescentes Região Central',
     imagem_url: '/praRaquel.jpeg',
     is_antigo: false,
     ordem: 2,
@@ -133,7 +133,7 @@ export default function LideresSection() {
           pastLeaders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 relative z-10">
               <h3 className="text-white text-4xl md:text-5xl font-handwriting tracking-wider opacity-90">Em construção...</h3>
-              <p className="text-white/80 mt-4 text-center max-w-md font-medium">Em breve você poderá conhecer nossa galeria de diretores antigos aqui.</p>
+              <p className="text-white/80 mt-4 text-center max-w-md font-medium">Em breve você poderá conhecer nossa galeria de diretores anteriores aqui.</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-12 relative z-10">

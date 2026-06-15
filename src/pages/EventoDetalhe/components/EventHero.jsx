@@ -73,11 +73,11 @@ export default function EventHero({ event }) {
           </div>
 
           {/* Lado direito — imagem */}
-          <div className="relative overflow-hidden h-[300px] md:h-auto">
+          <div className="flex items-center justify-center p-6 md:p-10">
             <img
               src={event.image}
               alt={event.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="w-full h-auto max-h-[600px] object-contain rounded-xl shadow-lg"
             />
           </div>
         </div>

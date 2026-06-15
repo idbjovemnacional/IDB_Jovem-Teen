@@ -138,7 +138,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 w-full z-50">
-      <div className="w-full min-h-[70px] md:min-h-[82px] bg-white flex items-center justify-between px-4 sm:px-6 md:px-12 py-3 md:py-6 shadow-md">
+      <div className="w-full min-h-[70px] md:min-h-[82px] bg-white flex items-center justify-between px-4 sm:px-6 md:px-12 py-3 shadow-md">
         {/* Logo */}
         <Link to="/" className="shrink-0 transition-all duration-300 hover:scale-105">
           <img src={logoSvg} alt="IDB Jovem & Teen" className="h-[40px] w-auto md:h-[55px]" />

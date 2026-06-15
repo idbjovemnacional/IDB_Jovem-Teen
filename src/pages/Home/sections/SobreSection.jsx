@@ -3,7 +3,7 @@ import cultoImg from "../../../assets/images/culto.png";
 import { TypewriterEffect } from "../../../components/ui/typewriter-effect";
 
 export default function SobreSection() {
-  const fullText = "A IDB Jovem & Teen é o departamento nacional de jovens e adolescentes feito para quem busca viver a fé de forma real e com propósito. Com encontros, eventos e uma comunidade acolhedora, é o lugar ideal para crescer, fazer amizades e se conectar com Deus.";
+  const fullText = "A IDB Jovem & Teen é o departamento nacional de jovens e adolescentes da Igreja de Deus no Brasil,  feito para quem busca viver a fé de forma real e com propósito. Com encontros, eventos e uma comunidade acolhedora, é o lugar ideal para crescer, fazer amizades e se conectar com Deus.";
 
   const bodyWords = fullText.split(" ").map((word) => ({
     text: word + "\u00A0",

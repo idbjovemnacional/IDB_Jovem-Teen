@@ -42,14 +42,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Centro - Logo e Missão */}
-          <div className="flex items-center gap-5 justify-center">
-            <img src={logoSvg} alt="IDB Jovem & Teen" className="w-[70px] h-auto shrink-0" />
-            <p className="text-neutral-600 text-sm leading-relaxed max-w-[280px] font-bold text-left">
+          {/* Centro - Logos e Missão */}
+          <div className="flex flex-col items-center gap-6 justify-center">
+            <div className="flex items-center gap-6">
+              <img src={logoSvg} alt="IDB Jovem & Teen" className="w-[70px] h-auto shrink-0" />
+              <div className="w-[2px] h-12 bg-neutral-200 rounded-full"></div>
+              <img src="/logo_geral.png" alt="Logo IDB Geral" className="h-[60px] w-auto shrink-0 object-contain" />
+            </div>
+            <p className="text-neutral-600 text-sm leading-relaxed max-w-[320px] font-bold text-center">
               Inspirar e capacitar as novas gerações a viverem o propósito cristão com autenticidade, unindo fé, protagonismo e serviço para transformar a sociedade.
             </p>
           </div>
-
           {/* Direita - Botões */}
           <div className="flex flex-col items-start md:items-end gap-6 md:pr-10">
             <Link
