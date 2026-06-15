@@ -41,7 +41,7 @@ export default function ProcessoVoluntario() {
             className="font-black text-[#2B2B2B] leading-none"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            Processo para virar
+            Torne-se
           </h2>
           <p
             className="font-handwriting text-[#FDF3EA] mt-2"
