@@ -10,7 +10,7 @@ import LideresSection from "./sections/LideresSection";
 import CalendarioSection from "./sections/CalendarioSection";
 
 export default function Home() {
-  const { countdown, events, products, gallery, nextEvent } = useHomeData();
+  const { countdown, events, gallery, nextEvent } = useHomeData();
 
   return (
     <main className="bg-black">
@@ -21,7 +21,7 @@ export default function Home() {
       <CalendarioSection events={events} />
       <VolunteerSection />
       <ProcessoVoluntario />
-      <ProdutosSection products={products} />
+      <ProdutosSection />
       <GaleriaSection gallery={gallery} />
     </main>
   );

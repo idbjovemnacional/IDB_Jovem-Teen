@@ -4,15 +4,12 @@ import {
   fetchAggregatedGallery,
   isFutureEvent,
 } from "../../../services/eventService";
-import { mockProducts } from "../../../data/mockProducts";
 import { getCountdown } from "../../../utils/formatDate";
 
 export function useHomeData() {
   const [events, setEvents] = useState([]);
   const [nextEvent, setNextEvent] = useState(null);
   const [countdown, setCountdown] = useState(getCountdown(null));
-  // Produtos seguem como mock (Parte 2 da integração)
-  const [products] = useState(mockProducts);
   const [gallery, setGallery] = useState([]);
 
   useEffect(() => {
@@ -50,5 +47,5 @@ export function useHomeData() {
     return () => clearInterval(interval);
   }, [nextEvent]);
 
-  return { countdown, events, products, gallery, nextEvent };
+  return { countdown, events, gallery, nextEvent };
 }
