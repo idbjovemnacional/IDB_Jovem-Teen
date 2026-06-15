@@ -1,8 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Building2, Clock } from "lucide-react";
-import { formatDate } from "../../../services/eventService";
+import { formatDate, toFormResponseUrl } from "../../../services/eventService";
 
 export default function EventList({ events }) {
+  const navigate = useNavigate();
+
+  const handleInscrever = (event) => {
+    if (event.linkFormularioVoluntarios) {
+      window.open(toFormResponseUrl(event.linkFormularioVoluntarios), "_blank", "noopener,noreferrer");
+    } else {
+      navigate(`/eventos/${event.slug}`);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {events.map((event) => (
@@ -46,7 +56,10 @@ export default function EventList({ events }) {
               >
                 Veja mais →
               </Link>
-              <button className="flex-1 text-sm font-semibold bg-[#FF6D2C] hover:bg-[#e65c18] text-white rounded-lg px-4 py-2 transition-colors">
+              <button
+                onClick={() => handleInscrever(event)}
+                className="flex-1 text-sm font-semibold bg-[#FF6D2C] hover:bg-[#e65c18] text-white rounded-lg px-4 py-2 transition-colors"
+              >
                 Inscreva-se
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, Clock } from "lucide-react";
 import EventFilters from "./components/EventFilters";
 import EventSearch from "./components/EventSearch";
@@ -9,6 +9,7 @@ import {
   fetchAllEvents,
   isOngoingOrFuture,
   splitDateTime,
+  toFormResponseUrl,
 } from "../../services/eventService";
 
 function normalizeText(value) {
@@ -82,8 +83,17 @@ function matchesEventFilters(event, filters) {
   return tipoAtivo && regiaoAtiva && dataAtiva;
 }
 
+function inscreverEvento(event, navigate) {
+  if (event.linkFormularioVoluntarios) {
+    window.open(toFormResponseUrl(event.linkFormularioVoluntarios), "_blank", "noopener,noreferrer");
+  } else {
+    navigate(`/eventos/${event.slug}`);
+  }
+}
+
 /* Card do carrossel */
 function CarouselCard({ event }) {
+  const navigate = useNavigate();
   return (
     <div className="min-w-[260px] sm:min-w-[280px] flex-shrink-0 bg-white rounded-2xl overflow-hidden shadow-sm group">
       <div className="relative overflow-hidden h-44">
@@ -114,7 +124,10 @@ function CarouselCard({ event }) {
           >
             Veja mais <span className="text-black">→</span>
           </Link>
-          <button className="flex-1 text-xs font-bold bg-[#FF6D2C] hover:bg-[#e65c18] text-white rounded-lg px-3 py-2 transition-colors">
+          <button
+            onClick={() => inscreverEvento(event, navigate)}
+            className="flex-1 text-xs font-bold bg-[#FF6D2C] hover:bg-[#e65c18] text-white rounded-lg px-3 py-2 transition-colors"
+          >
             Inscreva-se
           </button>
         </div>
@@ -124,6 +137,7 @@ function CarouselCard({ event }) {
 }
 
 export default function Eventos() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearchState] = useState(searchParams.get("q") || "");
 
@@ -269,7 +283,10 @@ export default function Eventos() {
                   >
                     Veja mais <span className="text-black text-lg leading-none">→</span>
                   </Link>
-                  <button className="bg-[#FF6D2C] hover:bg-[#e65c18] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors w-[130px]">
+                  <button
+                    onClick={() => inscreverEvento(featured, navigate)}
+                    className="bg-[#FF6D2C] hover:bg-[#e65c18] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors w-[130px]"
+                  >
                     Inscreva-se
                   </button>
                 </div>

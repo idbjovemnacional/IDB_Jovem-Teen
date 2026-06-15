@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Building2, Clock, CalendarPlus } from "lucide-react";
-import { buildGoogleCalendarUrl } from "../../../services/eventService";
+import { buildGoogleCalendarUrl, toFormResponseUrl } from "../../../services/eventService";
 
 export default function EventHero({ event }) {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function EventHero({ event }) {
               <button
                 onClick={() => {
                   if (event.linkFormularioVoluntarios) {
-                    window.open(event.linkFormularioVoluntarios, "_blank", "noopener,noreferrer");
+                    window.open(toFormResponseUrl(event.linkFormularioVoluntarios), "_blank", "noopener,noreferrer");
                   }
                 }}
                 className="flex-1 text-sm font-semibold bg-[#FF6D2C] hover:bg-[#e65c18] text-white rounded-lg px-4 py-2 transition-colors"

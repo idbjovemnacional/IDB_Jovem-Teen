@@ -133,6 +133,15 @@ export function buildGoogleCalendarUrl(event) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+export function toFormResponseUrl(url) {
+  if (!url || typeof url !== "string") return url || "";
+  let result = url.trim();
+  if (!/docs\.google\.com\/forms\//i.test(result)) return result;
+  result = result.replace(/#.*$/, "");
+  result = result.replace(/\/edit(?=$|\?)/i, "/viewform");
+  return result;
+}
+
 function adaptEvent(apiEvent) {
   if (!apiEvent) return null;
   return {
