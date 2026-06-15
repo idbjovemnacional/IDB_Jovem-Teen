@@ -41,8 +41,7 @@ const reasons = [
       "O Espírito do Senhor Deus está sobre mim porque o Senhor ungiu-me para levar boas novas aos pobres...",
     quoteAuthor: "Isaías 61",
     image: eismeaquiImg,
-    imageCaption: '"EIS ME AQUI" com o Bp. Paulo Borges',
-    imageCaption: '"EIS ME AQUI" com o Bp. Paulo Borges',
+    imageCaption: '"EIS ME AQUI"',
     imageRight: true,
   },
 ];
