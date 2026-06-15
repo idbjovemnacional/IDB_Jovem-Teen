@@ -64,7 +64,7 @@ export default function Header() {
     let active = true;
     fetchAllEvents()
       .then((events) => active && setAllEvents(events))
-      .catch(() => {});
+      .catch(() => { });
     return () => { active = false; };
   }, []);
 
