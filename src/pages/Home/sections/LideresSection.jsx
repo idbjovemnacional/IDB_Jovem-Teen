@@ -3,18 +3,18 @@ import LiderService from "../../../services/liderService";
 
 const STATIC_CURRENT_LEADERS = [
   {
-    lider_id: 'static_1',
-    nome: 'Bp. Samuel Tavares',
-    cargo: 'Diretor Nacional e regional de jovens',
-    imagem_url: '/prSamuel.jpeg',
-    is_antigo: false,
-    ordem: 1,
-  },
-  {
     lider_id: 'static_2',
     nome: 'Raquel Gomes',
     cargo: 'Diretora Nacional e regional de adolescentes',
     imagem_url: '/praRaquel.jpeg',
+    is_antigo: false,
+    ordem: 1,
+  },
+  {
+    lider_id: 'static_1',
+    nome: 'Bp. Samuel Tavares',
+    cargo: 'Diretor Nacional e regional de jovens',
+    imagem_url: '/prSamuel.jpeg',
     is_antigo: false,
     ordem: 2,
   },
@@ -130,14 +130,21 @@ export default function LideresSection() {
         </div>
 
         {showPast ? (
-          <div className="flex flex-col items-center gap-12 relative z-10">
-            <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-              {pastDirectors.map(leader => <LeaderCard key={leader.lider_id} leader={leader} isPast />)}
+          pastLeaders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 relative z-10">
+              <h3 className="text-white text-4xl md:text-5xl font-handwriting tracking-wider opacity-90">Em construção...</h3>
+              <p className="text-white/80 mt-4 text-center max-w-md font-medium">Em breve você poderá conhecer nossa galeria de diretores antigos aqui.</p>
             </div>
-            <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-              {pastOthers.map(leader => <LeaderCard key={leader.lider_id} leader={leader} isPast />)}
+          ) : (
+            <div className="flex flex-col items-center gap-12 relative z-10">
+              <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                {pastDirectors.map(leader => <LeaderCard key={leader.lider_id} leader={leader} isPast />)}
+              </div>
+              <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                {pastOthers.map(leader => <LeaderCard key={leader.lider_id} leader={leader} isPast />)}
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <div className="flex flex-col items-center relative z-10">
             {/* Container principal */}
