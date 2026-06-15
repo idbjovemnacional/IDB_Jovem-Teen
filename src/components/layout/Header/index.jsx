@@ -1,38 +1,119 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, XCircle, MapPin, Menu, X, User } from "lucide-react";
 import { NAV_LINKS } from "./header.constants";
+import { fetchAllEvents } from "../../../services/eventService";
 const logoSvg = "/logo.svg";
+
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .trim();
+}
+
+function SearchSuggestions({ items, onSelect }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[10px] border border-[#E0E0E0] shadow-lg overflow-hidden z-50 max-h-[320px] overflow-y-auto">
+      {items.map((event) => (
+        <button
+          key={event.id}
+          type="button"
+          onClick={() => onSelect(event)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#FDF3EA] transition-colors text-left"
+        >
+          <img
+            src={event.image}
+            alt=""
+            className="w-10 h-10 rounded-md object-cover shrink-0"
+          />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#1E1E1E] truncate">{event.title}</p>
+            {event.location && (
+              <p className="text-xs text-[#A0A0A0] truncate">{event.location}</p>
+            )}
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [allEvents, setAllEvents] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
 
-  // Fecha menu mobile ao navegar
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Bloqueia scroll do body quando menu mobile está aberto
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    let active = true;
+    fetchAllEvents()
+      .then((events) => active && setAllEvents(events))
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      const insideDesktop = searchRef.current?.contains(e.target);
+      const insideMobile = mobileSearchRef.current?.contains(e.target);
+      if (!insideDesktop && !insideMobile) setShowSuggestions(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    const termo = normalizeText(searchTerm);
+    if (termo.length < 1) return [];
+    return allEvents
+      .filter((event) =>
+        normalizeText(
+          [event.title, event.location, event.description, event.category].join(" ")
+        ).includes(termo)
+      )
+      .slice(0, 6);
+  }, [searchTerm, allEvents]);
+
+  const handleSelectEvent = (event) => {
+    navigate(`/eventos/${event.slug}`);
+    setSearchTerm("");
+    setShowSuggestions(false);
+    setMobileMenuOpen(false);
+  };
+
   const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/eventos?q=${encodeURIComponent(searchTerm)}`);
-      setMobileMenuOpen(false);
-    }
+    if (suggestions.length > 0) handleSelectEvent(suggestions[0]);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleSearch();
   };
 
-  const handleClear = () => setSearchTerm("");
+  const handleClear = () => {
+    setSearchTerm("");
+    setShowSuggestions(false);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setShowSuggestions(true);
+  };
 
   const handleNavClick = (e, item) => {
     if (item.path.startsWith("/#")) {
@@ -66,18 +147,24 @@ export default function Header() {
         {/* Desktop: Search + Eventos Próximos + Nav */}
         <div className="hidden lg:flex items-center gap-4 flex-1 max-w-[650px] mx-6">
           {/* Search Bar */}
-          <div className="flex-1 max-w-[395px] h-[45px] rounded-[10px] border border-[#E0E0E0] bg-[#F2F2F2]/95 shadow-search flex items-center px-4 gap-3">
-            <Search size={20} className="text-[#FF6D2C] cursor-pointer shrink-0" onClick={handleSearch} />
-            <input
-              type="text"
-              placeholder="Pesquisar eventos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#A0A0A0] min-w-0"
-            />
-            {searchTerm && (
-              <XCircle size={22} onClick={handleClear} className="lucide-x-circle text-[#FF6D2C] cursor-pointer hover:scale-110 transition-all shrink-0" />
+          <div ref={searchRef} className="relative flex-1 max-w-[395px]">
+            <div className="h-[45px] rounded-[10px] border border-[#E0E0E0] bg-[#F2F2F2]/95 shadow-search flex items-center px-4 gap-3">
+              <Search size={20} className="text-[#FF6D2C] cursor-pointer shrink-0" onClick={handleSearch} />
+              <input
+                type="text"
+                placeholder="Pesquisar eventos..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#A0A0A0] min-w-0"
+              />
+              {searchTerm && (
+                <XCircle size={22} onClick={handleClear} className="lucide-x-circle text-[#FF6D2C] cursor-pointer hover:scale-110 transition-all shrink-0" />
+              )}
+            </div>
+            {showSuggestions && (
+              <SearchSuggestions items={suggestions} onSelect={handleSelectEvent} />
             )}
           </div>
 
@@ -159,18 +246,24 @@ export default function Header() {
       >
         {/* Mobile Search */}
         <div className="p-4 border-b border-gray-100">
-          <div className="h-[45px] rounded-[10px] border border-[#E0E0E0] bg-[#F2F2F2]/95 flex items-center px-4 gap-3">
-            <Search size={18} className="text-[#FF6D2C] cursor-pointer shrink-0" onClick={handleSearch} />
-            <input
-              type="text"
-              placeholder="Pesquisar eventos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#A0A0A0] min-w-0"
-            />
-            {searchTerm && (
-              <XCircle size={20} onClick={handleClear} className="lucide-x-circle text-[#FF6D2C] cursor-pointer shrink-0" />
+          <div ref={mobileSearchRef} className="relative">
+            <div className="h-[45px] rounded-[10px] border border-[#E0E0E0] bg-[#F2F2F2]/95 flex items-center px-4 gap-3">
+              <Search size={18} className="text-[#FF6D2C] cursor-pointer shrink-0" onClick={handleSearch} />
+              <input
+                type="text"
+                placeholder="Pesquisar eventos..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#A0A0A0] min-w-0"
+              />
+              {searchTerm && (
+                <XCircle size={20} onClick={handleClear} className="lucide-x-circle text-[#FF6D2C] cursor-pointer shrink-0" />
+              )}
+            </div>
+            {showSuggestions && (
+              <SearchSuggestions items={suggestions} onSelect={handleSelectEvent} />
             )}
           </div>
         </div>
