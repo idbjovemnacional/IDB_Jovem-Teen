@@ -92,7 +92,7 @@ export default function EventosProximos() {
           </div>
         )}
 
-        <div className="w-full bg-white rounded-3xl border-4 border-white shadow-xl overflow-hidden relative h-[420px] md:h-[500px]">
+        <div className="w-full bg-white rounded-3xl border-4 border-white shadow-xl overflow-hidden relative z-0 h-[420px] md:h-[500px]">
           {locating ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loading size="lg" message="Obtendo sua localização..." />
