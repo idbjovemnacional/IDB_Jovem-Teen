@@ -16,11 +16,11 @@ export default function Footer() {
             </h3>
             <ul className="flex flex-col gap-4">
               <li>
-                <a href="mailto:contato@idbjovem.com" className="flex items-center gap-3 text-neutral-700 hover:text-[#FF7F11] transition-colors font-semibold text-sm">
+                <a href="mailto:idbjovemnacional@gmail.com" className="flex items-center gap-3 text-neutral-700 hover:text-[#FF7F11] transition-colors font-semibold text-sm">
                   <div className="w-6 h-6 flex items-center justify-center border-2 border-neutral-800 rounded-sm">
                     <Mail size={14} className="text-neutral-800" strokeWidth={2.5} />
                   </div>
-                  <span>contato@idbjovem.com</span>
+                  <span>idbjovemnacional@gmail.com</span>
                 </a>
               </li>
               <li>
