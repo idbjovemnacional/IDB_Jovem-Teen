@@ -1,6 +1,7 @@
 import { api } from "./api";
 import defaultEventImage from "../assets/images/idbJovemOne.png";
 import { toDriveImageUrl } from "../utils/driveImage";
+import { fetchSpeakers, handleCreateSpeaker } from "./speakerService";
 
 const DEFAULT_EVENT_IMAGE = defaultEventImage;
 
@@ -24,10 +25,6 @@ export function parseEventId(slugOrId) {
 
 const pad = (n) => String(n).padStart(2, "0");
 
-/* Lê os componentes literais de uma data ISO ("relógio de parede"), ignorando
-   qualquer fuso (Z/offset). O horário que o usuário digitou é o que aparece —
-   o back guarda os mesmos números e os devolve marcados como UTC, mas aqui não
-   convertemos, evitando o deslocamento (e o "drift" a cada edição). */
 function parseWallClock(value) {
   if (!value) return null;
   const m = String(value).match(
@@ -52,7 +49,6 @@ export function formatDate(isoDate) {
 export function extractDayMonth(isoDate) {
   const p = parseWallClock(isoDate);
   if (!p) return { day: "--", month: "---" };
-  /* Date construído com componentes locais (sem parse de fuso) só para o nome do mês */
   const d = new Date(p.year, p.month - 1, p.day);
   const month = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
   return { day: pad(p.day), month: month.charAt(0).toUpperCase() + month.slice(1) };
@@ -77,7 +73,6 @@ export function toInputDateTime(isoDate) {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
 }
 
-/* Separa um ISO em { day: "YYYY-MM-DD", time: "HH:mm" } (relógio de parede) */
 export function splitDateTime(isoDate) {
   const p = parseWallClock(isoDate);
   if (!p) return { day: "", time: "" };
@@ -96,10 +91,6 @@ export function isFutureEvent(isoDate) {
   return eventDate >= today;
 }
 
-/* Evento que ainda vai acontecer ou está acontecendo: continua visível enquanto
-   a data de término (ou a de início, se não houver término) for hoje ou no futuro.
-   Difere de isFutureEvent por considerar o término — eventos de vários dias que já
-   começaram permanecem visíveis até acabarem. */
 export function isOngoingOrFuture(event) {
   const p = parseWallClock(event?.endDate || event?.date);
   if (!p) return false;
@@ -109,9 +100,6 @@ export function isOngoingOrFuture(event) {
   return endDate >= today;
 }
 
-/* Monta a URL do Google Calendar para criar o evento na conta do usuário.
-   Usa o formato "TEMPLATE" (pré-preenchido): o usuário revisa e salva no próprio
-   calendário. As datas vão como relógio de parede (sem Z), no fuso do usuário. */
 export function buildGoogleCalendarUrl(event) {
   if (!event?.date) return null;
   const toGCal = (iso) => {
@@ -159,11 +147,8 @@ function adaptEvent(apiEvent) {
     linkFormularioVoluntarios: apiEvent.formulario_link || "",
     calendarioEventoId: apiEvent.calendario_evento_id || null,
     tipoEvento: apiEvent.tipo_evento || "",
-    /* URL da imagem de capa (Drive). image = valor exibido (com fallback);
-       linkImagem = valor cru para o formulário (vazio quando não há). */
     linkImagem: apiEvent.link_imagem || "",
     image: toDriveImageUrl(apiEvent.link_imagem) || DEFAULT_EVENT_IMAGE,
-    /* category espelha tipo_evento para alimentar o filtro da página de eventos */
     category: apiEvent.tipo_evento || "Outros",
     featured: false,
     totalParticipantes: 0,
@@ -239,7 +224,16 @@ export async function fetchEventById(slugOrId) {
   const id = parseEventId(slugOrId);
   if (!id) return null;
   const { data } = await api.get(`/evento/${id}`);
-  return adaptEvent(data);
+  const event = adaptEvent(data);
+  try {
+    const { data: partData } = await api.get(`/evento/${id}/participantes`);
+    if (partData && partData.length > 0) {
+      event.palestrantes = partData.map((p) => p.nome).join(", ");
+    }
+  } catch (err) {
+    // ignorar falha ao buscar participantes
+  }
+  return event;
 }
 
 export async function getGroupedEvents() {
@@ -250,6 +244,45 @@ export async function getGroupedEvents() {
 }
 
 export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Campanha Nacional", "Outros"];
+
+async function syncEventSpeakers(eventId, palestrantesString) {
+  try {
+    const names = (palestrantesString || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const { data: linkedData } = await api.get(`/evento/${eventId}/participantes`);
+    const linkedSpeakers = linkedData.map((p) => ({ id: p.participante_id, name: p.nome }));
+
+    for (const linked of linkedSpeakers) {
+      if (!names.find((n) => n.toLowerCase() === linked.name.toLowerCase())) {
+        await api.delete(`/evento/${eventId}/participantes/${linked.id}`).catch(() => { });
+      }
+    }
+
+    if (names.length === 0) return;
+
+    const allSpeakers = await fetchSpeakers().catch(() => []);
+
+    for (const name of names) {
+      let speaker = allSpeakers.find((s) => s.name.toLowerCase() === name.toLowerCase());
+
+      if (!speaker) {
+        const res = await handleCreateSpeaker({ name, role: "Palestrante" });
+        if (res.success) {
+          speaker = res.speaker;
+        }
+      }
+
+      if (speaker && !linkedSpeakers.find((s) => s.id === speaker.id)) {
+        await api.post(`/evento/${eventId}/participantes/${speaker.id}`).catch(() => { });
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao sincronizar palestrantes:", err);
+  }
+}
 
 export async function handleCreateEvent(data) {
   if (!data.title || !data.title.trim()) {
@@ -266,7 +299,9 @@ export async function handleCreateEvent(data) {
   }
   try {
     const { data: created } = await api.post("/evento/", toApiEvent(data));
-    return { success: true, event: adaptEvent(created) };
+    const newEvent = adaptEvent(created);
+    await syncEventSpeakers(newEvent.id, data.palestrantes);
+    return { success: true, event: newEvent };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao criar evento.") };
   }
@@ -282,7 +317,9 @@ export async function handleUpdateEvent(slugOrId, data) {
   const id = parseEventId(slugOrId);
   try {
     const { data: updated } = await api.put(`/evento/${id}`, toApiEvent(data));
-    return { success: true, event: adaptEvent(updated) };
+    const updEvent = adaptEvent(updated);
+    await syncEventSpeakers(id, data.palestrantes);
+    return { success: true, event: updEvent };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao atualizar evento.") };
   }
@@ -315,13 +352,10 @@ export async function fetchEventGallery(eventId) {
       url: foto.url_visualizacao,
     }));
   } catch {
-    /* evento sem link_galeria, pasta inexistente (404) ou falha no Drive (502) */
     return [];
   }
 }
 
-/* Galeria geral: agrega as fotos de todos os eventos que têm galeria.
-   (não há endpoint público de galeria geral; montamos a partir dos eventos) */
 export async function fetchAggregatedGallery() {
   const events = await fetchAllEvents();
   const comGaleria = events.filter((e) => e.linkGaleria);
