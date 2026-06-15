@@ -1,8 +1,12 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { mockKeycloakLogin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Página de Login', () => {
 
   test.beforeEach(async ({ page }) => {
+    await mockKeycloakLogin(page);
+    await setupApiMock(page);
     await page.goto('/login');
   });
 

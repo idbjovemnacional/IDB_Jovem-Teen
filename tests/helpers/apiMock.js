@@ -1,0 +1,484 @@
+// Mock stateful do backend REST + serviços externos (Nominatim/mapa/imagens)
+// usados pelas páginas admin e públicas. Cada chamada a `setupApiMock(page)`
+// cria um estado em memória novo e intercepta as requisições da página,
+// evitando depender de um backend/Keycloak reais nos testes E2E.
+//
+// As formas de dados seguem o contrato da API (snake_case: evento_id, nome,
+// data_inicio, ...) porque é isso que os adapters em src/services esperam.
+
+const pad = (n) => String(n).padStart(2, "0");
+
+/* Data no mês atual e no futuro (ou hoje), para alimentar "Próximos eventos"
+   e o carrossel da página pública de eventos (que filtra pelo mês corrente). */
+function currentMonthDate() {
+  const now = new Date();
+  const day = now.getDate() <= 26 ? now.getDate() + 2 : now.getDate();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(day)}`;
+}
+
+/* Cria um conjunto de dados isolado para cada teste */
+function makeSeed() {
+  const soonDay = currentMonthDate(); // YYYY-MM-DD no mês atual
+
+  return {
+    events: [
+      {
+        evento_id: 1,
+        nome: "Retiro de Verão",
+        descricao: "Um retiro incrível para os jovens.",
+        data_inicio: `${soonDay}T08:00:00`,
+        data_fim: `${soonDay}T18:00:00`,
+        nome_local: "Sítio Boa Vista",
+        local_latitude: -8.05,
+        local_longitude: -34.9,
+        link_galeria: "pasta-retiro",
+        formulario_link: "https://forms.gle/retiro",
+        link_imagem: "",
+        calendario_evento_id: null,
+      },
+      {
+        evento_id: 2,
+        nome: "Acampamento Jovem",
+        descricao: "Acampamento de fim de semana.",
+        data_inicio: "2030-03-10T08:00:00",
+        data_fim: "2030-03-12T18:00:00",
+        nome_local: "Camping Serra Azul",
+        local_latitude: -8.1,
+        local_longitude: -35.0,
+        link_galeria: "",
+        formulario_link: "",
+        link_imagem: "",
+        calendario_evento_id: null,
+      },
+      {
+        evento_id: 3,
+        nome: "Congresso 2020",
+        descricao: "Congresso anterior.",
+        data_inicio: "2020-05-01T08:00:00",
+        data_fim: "2020-05-03T18:00:00",
+        nome_local: "Centro de Convenções",
+        local_latitude: -8.06,
+        local_longitude: -34.88,
+        link_galeria: "pasta-congresso",
+        formulario_link: "https://forms.gle/congresso",
+        link_imagem: "",
+        calendario_evento_id: null,
+      },
+      {
+        // Evento passado com campos opcionais vazios → exercita os fallbacks "—"
+        evento_id: 77777,
+        nome: "Evento Null Fields",
+        descricao: "",
+        data_inicio: "2019-01-01T00:00:00",
+        data_fim: "2019-01-01T00:00:00",
+        nome_local: "",
+        local_latitude: null,
+        local_longitude: null,
+        link_galeria: "",
+        formulario_link: "",
+        link_imagem: "",
+        calendario_evento_id: null,
+      },
+    ],
+    activities: [
+      {
+        atividade_id: 10,
+        evento_id: 1,
+        nome: "Abertura",
+        descricao: "Boas-vindas e avisos.",
+        horario_inicio: `${soonDay}T17:00:00`,
+        horario_termino: `${soonDay}T18:00:00`,
+      },
+      {
+        atividade_id: 11,
+        evento_id: 1,
+        nome: "Louvor",
+        descricao: "Momento de louvor.",
+        horario_inicio: `${soonDay}T18:00:00`,
+        horario_termino: `${soonDay}T19:00:00`,
+      },
+      {
+        atividade_id: 12,
+        evento_id: 1,
+        nome: "Ministração",
+        descricao: "Palavra da noite.",
+        horario_inicio: `${soonDay}T19:00:00`,
+        horario_termino: `${soonDay}T20:30:00`,
+      },
+      {
+        atividade_id: 13,
+        evento_id: 1,
+        nome: "Encerramento",
+        descricao: "Comunhão final.",
+        horario_inicio: `${soonDay}T20:30:00`,
+        horario_termino: `${soonDay}T21:00:00`,
+      },
+    ],
+    // Palestrantes/participantes por evento
+    speakers: {
+      1: [
+        { participante_id: 201, nome: "Pr. André", profissao: "Pastor", link_foto: "" },
+        { participante_id: 202, nome: "Banda Luz", profissao: "Ministério de Louvor", link_foto: "" },
+        { participante_id: 203, nome: "Pra. Beatriz", profissao: "Conferencista", link_foto: "" },
+        { participante_id: 204, nome: "DJ Paz", profissao: "Músico", link_foto: "" },
+      ],
+      2: [
+        { participante_id: 211, nome: "Pr. Carlos", profissao: "Pastor", link_foto: "" },
+        { participante_id: 212, nome: "Banda Vida", profissao: "Louvor", link_foto: "" },
+        { participante_id: 213, nome: "Pra. Diana", profissao: "Conferencista", link_foto: "" },
+        { participante_id: 214, nome: "Coral IDB", profissao: "Coral", link_foto: "" },
+      ],
+    },
+    // Fotos de galeria por evento (formato da API: nome + url_visualizacao)
+    galleries: {
+      1: [
+        { id: "g1", nome: "foto1.jpg", url_visualizacao: "https://lh3.googleusercontent.com/d/foto1=w1200" },
+        { id: "g2", nome: "foto2.jpg", url_visualizacao: "https://lh3.googleusercontent.com/d/foto2=w1200" },
+      ],
+      3: [
+        { id: "g3", nome: "foto3.jpg", url_visualizacao: "https://lh3.googleusercontent.com/d/foto3=w1200" },
+      ],
+    },
+    // Líderes (organograma da Home)
+    lideres: [
+      { lider_id: 301, nome: "João Diretor", cargo: "Diretor Geral", ordem: 1, is_antigo: false, imagem_url: "" },
+      { lider_id: 302, nome: "Maria Diretora", cargo: "Vice-Diretora", ordem: 2, is_antigo: false, imagem_url: "" },
+      { lider_id: 303, nome: "Pedro Líder", cargo: "Coordenador", ordem: 3, is_antigo: false, imagem_url: "" },
+      { lider_id: 304, nome: "Antiga Diretora", cargo: "Diretora (2020)", ordem: 1, is_antigo: true, imagem_url: "" },
+      { lider_id: 305, nome: "Antigo Diretor", cargo: "Diretor (2019)", ordem: 2, is_antigo: true, imagem_url: "" },
+    ],
+    products: [
+      {
+        produto_id: 1,
+        nome: "Camiseta IDB",
+        descricao: "Camiseta oficial do IDB Jovem.",
+        link_produto: "https://hotmart.com/camiseta",
+        link_imagem: "",
+      },
+      {
+        produto_id: 2,
+        nome: "Caneca IDB",
+        descricao: "Caneca personalizada.",
+        link_produto: "https://hotmart.com/caneca",
+        link_imagem: "",
+      },
+      {
+        produto_id: 3,
+        nome: "Boné IDB",
+        descricao: "Boné estiloso.",
+        link_produto: "https://hotmart.com/bone",
+        link_imagem: "",
+      },
+    ],
+    // Inscrições (voluntários) por evento
+    inscricoes: [
+      {
+        evento_id: 1,
+        voluntario_id: 100,
+        nome: "Maria Silva",
+        email: "maria@example.com",
+        status: "pendente",
+        resposta_id: "r1",
+        link_resposta: "https://forms.gle/resposta1",
+      },
+      {
+        evento_id: 1,
+        voluntario_id: 101,
+        nome: "João Souza",
+        email: "joao@example.com",
+        status: "aprovado",
+        resposta_id: "r2",
+        link_resposta: "",
+      },
+      {
+        // Evento 2 não tem formulario_link e este voluntário não tem
+        // link_resposta → o link "Abrir Formulário" cai no fallback "#".
+        evento_id: 2,
+        voluntario_id: 102,
+        nome: "Ana Lima",
+        email: "ana@example.com",
+        status: "pendente",
+        resposta_id: "r3",
+        link_resposta: "",
+      },
+    ],
+    nextEventId: 1000,
+    nextActivityId: 2000,
+    nextProductId: 3000,
+  };
+}
+
+const json = (data, status = 200) => ({
+  status,
+  contentType: "application/json",
+  body: JSON.stringify(data),
+});
+
+const notFound = () => json({ detail: "Não encontrado." }, 404);
+
+/* PNG transparente 1x1 — usado para stubar imagens/tiles externos e evitar que
+   o evento "load" da página fique pendurado esperando recursos de rede. */
+const TRANSPARENT_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
+export async function setupApiMock(page) {
+  const db = makeSeed();
+
+  /* Imagens e tiles externos → devolve um pixel para não travar o load */
+  await page.route(
+    /(via\.placeholder\.com|tile\.openstreetmap\.org|lh3\.googleusercontent\.com|unpkg\.com)/,
+    (route) =>
+      route.fulfill({ status: 200, contentType: "image/png", body: TRANSPARENT_PNG })
+  );
+
+  /* Busca de locais (LocationPicker chama o Nominatim direto via fetch) */
+  await page.route(/nominatim\.openstreetmap\.org\/search/, (route) =>
+    route.fulfill(
+      json([
+        {
+          display_name: "Igreja IDB, Recife - PE",
+          lat: "-8.047562",
+          lon: "-34.877000",
+        },
+        {
+          display_name: "Parque da Jaqueira, Recife - PE",
+          lat: "-8.036000",
+          lon: "-34.903000",
+        },
+      ])
+    )
+  );
+
+  /* Backend REST. Ancorado logo após o host para NÃO interceptar as rotas do
+     SPA (ex.: http://localhost:5173/admin/voluntarios), apenas as chamadas de
+     API (ex.: http://localhost:8000/voluntarios/...). */
+  await page.route(
+    /^https?:\/\/[^/]+\/(evento|produto|voluntarios|formulario|mapa|lider|banda-palestrante)(\/|\?|$)/,
+    async (route) => {
+      const request = route.request();
+      const method = request.method();
+      const url = new URL(request.url());
+      const path = url.pathname;
+      let body = {};
+      if (method === "POST" || method === "PUT") {
+        try {
+          body = JSON.parse(request.postData() || "{}");
+        } catch {
+          body = {};
+        }
+      }
+
+      // ---------- MAPA ----------
+      if (path.endsWith("/mapa/endereco")) {
+        return route.fulfill(json({ nome_local: "Local de Teste" }));
+      }
+
+      // ---------- LIDERES ----------
+      if (path.match(/\/lider\/?$/) && method === "GET") {
+        return route.fulfill(json(db.lideres));
+      }
+      let m = path.match(/\/lider\/(\d+)$/);
+      if (m && method === "GET") {
+        const lider = db.lideres.find((l) => l.lider_id === Number(m[1]));
+        return route.fulfill(lider ? json(lider) : notFound());
+      }
+
+      // ---------- BANDA/PALESTRANTE ----------
+      if (path.match(/\/banda-palestrante\/?$/) && method === "GET") {
+        const all = Object.values(db.speakers).flat();
+        return route.fulfill(json(all));
+      }
+
+      // ---------- FORMULARIO (inscrições por evento) ----------
+      m = path.match(/\/formulario\/eventos\/(\d+)\/inscricoes$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(
+          json(db.inscricoes.filter((i) => i.evento_id === eventId))
+        );
+      }
+
+      // ---------- VOLUNTARIOS ----------
+      m = path.match(/\/voluntarios\/(\d+)\/evento\/(\d+)\/status$/);
+      if (m && method === "PATCH") {
+        const voluntarioId = Number(m[1]);
+        const eventId = Number(m[2]);
+        const novoStatus = url.searchParams.get("novo_status");
+        const insc = db.inscricoes.find(
+          (i) => i.voluntario_id === voluntarioId && i.evento_id === eventId
+        );
+        if (insc) insc.status = novoStatus;
+        return route.fulfill(
+          json({
+            voluntario_id: voluntarioId,
+            evento_id: eventId,
+            status: novoStatus,
+            resposta_id: insc?.resposta_id || "",
+          })
+        );
+      }
+      m = path.match(/\/voluntarios\/evento\/(\d+)\/contagem$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(
+          json(db.inscricoes.filter((i) => i.evento_id === eventId).length)
+        );
+      }
+      m = path.match(/\/voluntarios\/evento\/(\d+)$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(
+          json(db.inscricoes.filter((i) => i.evento_id === eventId))
+        );
+      }
+
+      // ---------- ATIVIDADES ----------
+      m = path.match(/\/evento\/atividade\/(\d+)$/);
+      if (m) {
+        const actId = Number(m[1]);
+        const idx = db.activities.findIndex((a) => a.atividade_id === actId);
+        if (method === "PUT") {
+          if (idx === -1) return route.fulfill(notFound());
+          db.activities[idx] = { ...db.activities[idx], ...body, atividade_id: actId };
+          return route.fulfill(json(db.activities[idx]));
+        }
+        if (method === "DELETE") {
+          if (idx !== -1) db.activities.splice(idx, 1);
+          return route.fulfill(json({}, 204));
+        }
+      }
+      m = path.match(/\/evento\/(\d+)\/atividade$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        if (!db.events.some((e) => e.evento_id === eventId)) {
+          return route.fulfill(notFound());
+        }
+        if (method === "GET") {
+          return route.fulfill(
+            json(db.activities.filter((a) => a.evento_id === eventId))
+          );
+        }
+        if (method === "POST") {
+          const created = {
+            atividade_id: db.nextActivityId++,
+            evento_id: eventId,
+            nome: body.nome,
+            descricao: body.descricao || "",
+            horario_inicio: body.horario_inicio,
+            horario_termino: body.horario_termino,
+          };
+          db.activities.push(created);
+          return route.fulfill(json(created));
+        }
+      }
+
+      // ---------- PARTICIPANTES (palestrantes do evento) ----------
+      m = path.match(/\/evento\/(\d+)\/participantes$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(json(db.speakers[eventId] || []));
+      }
+
+      // ---------- GALERIA ----------
+      m = path.match(/\/evento\/(\d+)\/galeria$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(json(db.galleries[eventId] || []));
+      }
+
+      // ---------- EVENTOS ----------
+      if (path.match(/\/evento\/buscar$/)) {
+        const termo = (url.searchParams.get("termo") || "").toLowerCase();
+        return route.fulfill(
+          json(db.events.filter((e) => e.nome.toLowerCase().includes(termo)))
+        );
+      }
+      m = path.match(/\/evento\/(\d+)$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        const idx = db.events.findIndex((e) => e.evento_id === eventId);
+        if (method === "GET") {
+          // Evento inexistente → 200 com null, para o front renderizar a tela
+          // de "Evento não encontrado." (em vez de cair no estado de erro)
+          if (idx === -1) return route.fulfill(json(null));
+          return route.fulfill(json(db.events[idx]));
+        }
+        if (method === "PUT") {
+          if (idx === -1) return route.fulfill(notFound());
+          db.events[idx] = { ...db.events[idx], ...body, evento_id: eventId };
+          return route.fulfill(json(db.events[idx]));
+        }
+        if (method === "DELETE") {
+          if (idx !== -1) db.events.splice(idx, 1);
+          return route.fulfill(json({}, 204));
+        }
+      }
+      if (path.match(/\/evento\/?$/)) {
+        if (method === "GET") {
+          return route.fulfill(json(db.events));
+        }
+        if (method === "POST") {
+          const created = {
+            evento_id: db.nextEventId++,
+            nome: body.nome,
+            descricao: body.descricao || "",
+            data_inicio: body.data_inicio,
+            data_fim: body.data_fim,
+            nome_local: body.nome_local || "",
+            local_latitude: body.local_latitude,
+            local_longitude: body.local_longitude,
+            link_galeria: body.link_galeria || "",
+            formulario_link: body.formulario_link || "",
+            link_imagem: body.link_imagem || "",
+            calendario_evento_id: null,
+          };
+          db.events.push(created);
+          return route.fulfill(json(created));
+        }
+      }
+
+      // ---------- PRODUTOS ----------
+      m = path.match(/\/produto\/(\d+)$/);
+      if (m) {
+        const prodId = Number(m[1]);
+        const idx = db.products.findIndex((p) => p.produto_id === prodId);
+        if (method === "GET") {
+          if (idx === -1) return route.fulfill(notFound());
+          return route.fulfill(json(db.products[idx]));
+        }
+        if (method === "PUT") {
+          if (idx === -1) return route.fulfill(notFound());
+          db.products[idx] = { ...db.products[idx], ...body, produto_id: prodId };
+          return route.fulfill(json(db.products[idx]));
+        }
+        if (method === "DELETE") {
+          if (idx !== -1) db.products.splice(idx, 1);
+          return route.fulfill(json({}, 204));
+        }
+      }
+      if (path.match(/\/produto\/?$/)) {
+        if (method === "GET") {
+          return route.fulfill(json(db.products));
+        }
+        if (method === "POST") {
+          const created = {
+            produto_id: db.nextProductId++,
+            nome: body.nome,
+            descricao: body.descricao || "",
+            link_produto: body.link_produto || "",
+            link_imagem: body.link_imagem || "",
+          };
+          db.products.push(created);
+          return route.fulfill(json(created));
+        }
+      }
+
+      // Fallback: rota conhecida mas não tratada → 404 controlado
+      return route.fulfill(notFound());
+    }
+  );
+
+  return db;
+}

@@ -1,7 +1,9 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Página Inicial (Home)', () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
     await page.goto('/');
   });
 
@@ -32,16 +34,16 @@ test.describe('Página Inicial (Home)', () => {
     const titulo = page.getByRole('heading', { name: /Nosso Organograma/i });
     await expect(titulo).toBeVisible();
 
-    // Deve ter botão de alternância
-    const btnAntigosLideres = page.getByRole('button', { name: /Antigos Líderes/i });
-    await expect(btnAntigosLideres).toBeVisible();
+    // Deve ter botão de alternância para a galeria de diretores
+    const btnGaleriaDiretores = page.getByRole('button', { name: /Galeria de Diretores/i });
+    await expect(btnGaleriaDiretores).toBeVisible();
   });
 
-  test('LideresSection - deve permitir alternar para antigos líderes', async ({ page }) => {
-    const btnAlternar = page.getByRole('button', { name: /Antigos Líderes/i });
+  test('LideresSection - deve permitir alternar para a galeria de diretores', async ({ page }) => {
+    const btnAlternar = page.getByRole('button', { name: /Galeria de Diretores/i });
     await btnAlternar.click();
 
-    const tituloAntigos = page.getByRole('heading', { name: /Antigos líderes/i });
+    const tituloAntigos = page.getByRole('heading', { name: /Galeria de Diretores/i });
     await expect(tituloAntigos).toBeVisible();
 
     // O botão deve mudar o texto

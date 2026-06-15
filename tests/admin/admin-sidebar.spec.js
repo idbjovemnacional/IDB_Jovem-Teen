@@ -1,9 +1,11 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
 import { loginAsAdmin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Admin Sidebar e Navegação', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     await page.goto('/admin');
   });
 

@@ -1,7 +1,9 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Página de Eventos', () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
     await page.goto('/eventos');
   });
 
@@ -60,10 +62,6 @@ test.describe('Página de Eventos', () => {
     const setaNext = page.getByLabel('Próximo');
     await expect(setaPrev).toBeVisible();
     await expect(setaNext).toBeVisible();
-
-    // Link do google calendar
-    const linkCalendar = page.getByRole('link', { name: /Adicionar ao Google Calendar/i });
-    await expect(linkCalendar).toBeVisible();
   });
 
   test('deve exibir a grid de eventos com os cards', async ({ page }) => {
@@ -195,12 +193,10 @@ test.describe('Página de Eventos', () => {
     expect(await vejaMaisLinks.count()).toBeGreaterThan(0);
   });
 
-  test('deve ter link Google Calendar com target="_blank" e rel="noopener noreferrer"', async ({ page }) => {
-    const linkCalendar = page.getByRole('link', { name: /Adicionar ao Google Calendar/i });
-    await expect(linkCalendar).toBeVisible();
-
-    await expect(linkCalendar).toHaveAttribute('target', '_blank');
-    await expect(linkCalendar).toHaveAttribute('rel', 'noopener noreferrer');
-    await expect(linkCalendar).toHaveAttribute('href', 'https://calendar.google.com');
+  test('deve ter links "Veja mais" do carrossel apontando para a página do evento', async ({ page }) => {
+    const carouselSection = page.locator('section').filter({ hasText: 'Próximos eventos' });
+    const vejaMais = carouselSection.getByRole('link', { name: /Veja mais/i }).first();
+    await expect(vejaMais).toBeVisible();
+    await expect(vejaMais).toHaveAttribute('href', /\/eventos\/\d+/);
   });
 });

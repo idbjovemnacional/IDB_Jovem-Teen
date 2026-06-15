@@ -1,7 +1,12 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { mockKeycloakLogin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Fluxo Completo de Administração', () => {
   test('Fluxo completo: Login -> Dashboard -> Eventos -> Produtos -> Logout', async ({ page }) => {
+    await mockKeycloakLogin(page);
+    await setupApiMock(page);
+
     // 1. Tentar acessar admin sem estar logado
     await page.goto('/admin');
     // Deve redirecionar para login

@@ -1,14 +1,16 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Header e Navegação Desktop', () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
     await page.goto('/');
   });
 
   test('deve renderizar o logotipo corretamente e direcionar para home', async ({ page }) => {
 
     await page.setViewportSize({ width: 1280, height: 720 });
-    const logoLink = page.getByRole('link', { name: /IDB JOVEM/i });
+    const logoLink = page.locator('header').getByRole('link', { name: /IDB JOVEM/i });
     await expect(logoLink).toBeVisible();
     await logoLink.click();
     await expect(page).toHaveURL('/');
@@ -51,14 +53,15 @@ test.describe('Header e Navegação Desktop', () => {
     await expect(searchInput).toHaveValue('');
   });
 
-  test('deve redirecionar para /eventos ao pesquisar e pressionar Enter', async ({ page }) => {
+  test('deve abrir o evento correspondente ao pesquisar e pressionar Enter', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 
     const searchInput = page.locator('input[placeholder="Pesquisar eventos..."]').first();
     await searchInput.fill('Camp');
     await searchInput.press('Enter');
 
-    await expect(page).toHaveURL(/\/eventos\?q=Camp/);
+    // A busca abre a página do primeiro evento sugerido (Acampamento Jovem)
+    await expect(page).toHaveURL(/\/eventos\/\d+/);
   });
 
   test('deve exibir o botão "Eventos próximos" no desktop e redirecionar', async ({ page }) => {
@@ -121,6 +124,7 @@ test.describe('Header e Navegação Desktop', () => {
 
 test.describe('Menu Mobile', () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
   });
@@ -172,7 +176,8 @@ test.describe('Menu Mobile', () => {
     await searchInput.fill('Camp');
     await searchInput.press('Enter');
 
-    await expect(page).toHaveURL(/\/eventos\?q=Camp/);
+    // A busca abre a página do primeiro evento sugerido
+    await expect(page).toHaveURL(/\/eventos\/\d+/);
   });
 
   test('deve redirecionar para login pelo ícone no cabeçalho mobile', async ({ page }) => {

@@ -1,17 +1,22 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Página de Detalhes do Evento', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
+  });
+
   test('deve carregar informações de um evento válido', async ({ page }) => {
-    await page.goto('/eventos/evento-1');
+    await page.goto('/eventos/1-retiro-de-verao');
 
     // Hero Section
-    const titulo = page.getByRole('heading', { name: 'IDB TEEN CAMP' });
+    const titulo = page.getByRole('heading', { name: 'Retiro de Verão' });
     await expect(titulo).toBeVisible();
 
-    const desc = page.getByText(/Um acampamento incrível para jovens/i);
+    const desc = page.getByText(/Um retiro incrível para os jovens/i);
     await expect(desc).toBeVisible();
 
-    const loc = page.getByText('Brasília, DF');
+    const loc = page.getByText('Sítio Boa Vista');
     await expect(loc).toBeVisible();
 
     // Botão voltar do Hero
@@ -48,7 +53,7 @@ test.describe('Página de Detalhes do Evento', () => {
   test('deve navegar para trás ao clicar no botão Voltar do Hero', async ({ page }) => {
     // Navega primeiro para eventos, depois para detalhes para ter histórico
     await page.goto('/eventos');
-    await page.goto('/eventos/evento-1');
+    await page.goto('/eventos/1-retiro-de-verao');
 
     const btnVoltar = page.getByLabel('Voltar');
     await expect(btnVoltar).toBeVisible();
@@ -58,7 +63,7 @@ test.describe('Página de Detalhes do Evento', () => {
   });
 
   test('deve renderizar os cards de speakers com nome e profissão', async ({ page }) => {
-    await page.goto('/eventos/evento-1');
+    await page.goto('/eventos/1-retiro-de-verao');
 
     // Seção de speakers deve existir
     const speakerSection = page.locator('section').filter({ hasText: 'Palestrantes' });
@@ -84,12 +89,12 @@ test.describe('Página de Detalhes do Evento', () => {
   });
 
   test('deve renderizar a programação com horários e atividades', async ({ page }) => {
-    await page.goto('/eventos/evento-1');
+    await page.goto('/eventos/1-retiro-de-verao');
 
     const scheduleSection = page.locator('section').filter({ hasText: 'Programação do evento' });
     await expect(scheduleSection).toBeVisible();
 
-    // evento-1 tem 4 atividades
+    // evento 1 tem 4 atividades
     await expect(scheduleSection.getByText('Abertura')).toBeVisible();
     await expect(scheduleSection.getByText('Louvor')).toBeVisible();
     await expect(scheduleSection.getByText('Ministração')).toBeVisible();
@@ -103,9 +108,9 @@ test.describe('Página de Detalhes do Evento', () => {
   });
 
   test('deve renderizar a galeria do evento quando existem fotos', async ({ page }) => {
-    await page.goto('/eventos/evento-1');
+    await page.goto('/eventos/1-retiro-de-verao');
 
-    // evento-1 tem galeria com 1 foto
+    // evento 1 tem galeria com fotos
     const galeriaSection = page.locator('section').filter({ hasText: 'Galeria do evento' });
     await expect(galeriaSection).toBeVisible();
 
@@ -117,31 +122,28 @@ test.describe('Página de Detalhes do Evento', () => {
   });
 
   test('não deve renderizar galeria quando não existem fotos', async ({ page }) => {
-    await page.goto('/eventos/evento-2');
+    await page.goto('/eventos/2-acampamento-jovem');
 
-    // Speakers e Schedule devem estar visíveis 
+    // Speakers devem estar visíveis
     await expect(page.getByRole('heading', { name: 'Palestrantes' })).toBeVisible();
 
-    // Galeria do evento NÃO deve aparecer
+    // Galeria do evento NÃO deve aparecer (evento 2 não tem fotos)
     const galeriaHeading = page.getByRole('heading', { name: 'Galeria do evento' });
     await expect(galeriaHeading).not.toBeVisible();
   });
 
-  test('deve carregar informações do evento-em-destaque com schedule completo', async ({ page }) => {
-    await page.goto('/eventos/evento-em-destaque');
+  test('deve carregar o evento acessando apenas pelo id no slug', async ({ page }) => {
+    // O slug é resolvido pelo id numérico no início
+    await page.goto('/eventos/1');
 
-    const titulo = page.getByRole('heading', { name: 'IMERSÃO 2025' });
-    await expect(titulo).toBeVisible();
-
-    await expect(page.getByText('São Paulo, SP')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Retiro de Verão' })).toBeVisible();
 
     // 4 speakers
     const speakerSection = page.locator('section').filter({ hasText: 'Palestrantes' });
-    const speakerNames = speakerSection.locator('h3');
-    expect(await speakerNames.count()).toBe(4);
+    expect(await speakerSection.locator('h3').count()).toBe(4);
 
-    // 8 atividades na programação
+    // Programação visível
     const scheduleSection = page.locator('section').filter({ hasText: 'Programação do evento' });
-    await expect(scheduleSection.getByText('Atividade').first()).toBeVisible();
+    await expect(scheduleSection.getByText('Abertura')).toBeVisible();
   });
 });

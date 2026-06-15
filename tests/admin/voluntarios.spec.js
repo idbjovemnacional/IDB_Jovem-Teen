@@ -1,9 +1,11 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
 import { loginAsAdmin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Admin - Gerenciamento de Voluntários', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     await page.goto('/admin/voluntarios', { waitUntil: 'domcontentloaded' });
   });
 
@@ -28,6 +30,7 @@ test.describe('Admin - Gerenciamento de Voluntários', () => {
 test.describe('Admin - Voluntários Detalhes da Tabela', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     // Vai direto para um evento
     await page.goto('/admin/voluntarios/1');
   });
@@ -55,8 +58,8 @@ test.describe('Admin - Voluntários Detalhes da Tabela', () => {
     const dropdownBtn = page.getByRole('button', { name: 'Pendente' }).first();
     await dropdownBtn.click();
 
-    // Clica no novo status
-    await page.locator('.absolute').getByRole('button', { name: 'Aprovado' }).click();
+    // Clica no novo status (as opções do portal têm a classe w-full)
+    await page.locator('button.w-full', { hasText: 'Aprovado' }).click();
 
     await expect(page.getByRole('button', { name: 'Aprovado' }).first()).toBeVisible();
   });
@@ -66,8 +69,8 @@ test.describe('Admin - Voluntários Detalhes da Tabela', () => {
     const dropdownBtn = page.getByRole('button', { name: 'Pendente' }).first();
     await dropdownBtn.click();
 
-    // Clica no novo status
-    await page.locator('.absolute').getByRole('button', { name: 'Reprovado' }).click();
+    // Clica no novo status (as opções do portal têm a classe w-full)
+    await page.locator('button.w-full', { hasText: 'Reprovado' }).click();
 
     await expect(page.getByRole('button', { name: 'Reprovado' }).first()).toBeVisible();
   });
@@ -92,6 +95,7 @@ test.describe('Admin - Voluntários Detalhes da Tabela', () => {
 test.describe('Admin - Voluntários Detalhes - Evento Não Encontrado', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
   });
 
   test('deve exibir mensagem de Evento não encontrado para ID inválido', async ({ page }) => {
@@ -107,6 +111,7 @@ test.describe('Admin - Voluntários Detalhes - Evento Não Encontrado', () => {
 test.describe('Admin - Voluntários - Branch de linkFormularioVoluntarios', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
   });
 
   test('deve verificar atributo href do link Abrir Formulário (Details.jsx L86)', async ({ page }) => {

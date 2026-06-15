@@ -1,5 +1,6 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
 import { loginAsAdmin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Admin Route Guards', () => {
   test('deve redirecionar para login se não estiver autenticado e tentar acessar /admin', async ({ page }) => {
@@ -17,6 +18,7 @@ test.describe('Admin Route Guards', () => {
 
   test('deve permitir acesso ao /admin se o auth helper estiver ativo', async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     await page.goto('/admin');
 
     await expect(page).toHaveURL(/\/admin/);

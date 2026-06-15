@@ -1,6 +1,12 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { mockKeycloakLogin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Fluxos de Navegação Pública (Cross-page)', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockKeycloakLogin(page);
+    await setupApiMock(page);
+  });
   test('Fluxo Home -> Eventos -> Detalhes -> Voltar -> Home', async ({ page }) => {
     // Inicia na Home
     await page.goto('/');

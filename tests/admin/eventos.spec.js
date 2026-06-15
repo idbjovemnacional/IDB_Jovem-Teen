@@ -1,9 +1,18 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
 import { loginAsAdmin } from '../helpers/adminAuth';
+import { setupApiMock } from '../helpers/apiMock';
+
+async function preencherLocalPelaBusca(page) {
+  const busca = page.getByPlaceholder('Digite o nome ou endereço do local');
+  await busca.fill('Igreja IDB');
+  // Resultado da busca mockada
+  await page.getByText('Igreja IDB, Recife - PE').click();
+}
 
 test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     await page.goto('/admin/eventos');
   });
 
@@ -25,20 +34,23 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
   test('deve preencher e salvar um novo evento completo', async ({ page }) => {
     await page.goto('/admin/eventos/criar');
 
-    // Preenche o form
+    // Preenche o form (UI nova: datas separadas + local pelo mapa)
     await page.getByPlaceholder('Nome do Evento').fill('Retiro Playwright');
     await page.locator('textarea[name="description"]').fill('Um evento para testar com E2E.');
-    await page.getByPlaceholder('Local do evento').fill('Sítio Teste');
-    await page.locator('input[name="date"]').fill('2029-12-31');
+    await preencherLocalPelaBusca(page);
+    await page.locator('input[name="startDay"]').fill('2029-12-30');
+    await page.locator('input[name="startTime"]').fill('08:00');
+    await page.locator('input[name="endDay"]').fill('2029-12-31');
+    await page.locator('input[name="endTime"]').fill('18:00');
     await page.getByPlaceholder('Palestrantes').fill('Pr. Dev');
     await page.getByPlaceholder('Bandas').fill('Banda QA');
     await page.locator('input[name="linkFormularioVoluntarios"]').fill('https://forms.gle/teste');
 
     await page.getByRole('button', { name: 'Salvar' }).click();
 
-    // Volta pra lista, deve aparecer o novo
-    await expect(page).toHaveURL(/\/admin\/eventos/);
-    await expect(page.getByText('Retiro Playwright').first()).toBeVisible();
+    // Após criar, o app vai direto para a programação do novo evento
+    await expect(page).toHaveURL(/\/admin\/eventos\/\d+\/programacao/);
+    await expect(page.getByRole('heading', { name: 'Programação do Evento' })).toBeVisible();
   });
 
   test('deve editar um evento existente', async ({ page }) => {
@@ -97,10 +109,7 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
   test('deve exibir erro ao tentar criar evento sem título', async ({ page }) => {
     await page.goto('/admin/eventos/criar');
 
-    // Deixa título vazio e preenche o resto
-    await page.locator('input[name="date"]').fill('2029-12-31');
-
-    // Intercepta alerts do navegador, pois o app usa alert() 
+    // Intercepta alerts do navegador, pois o app usa alert()
     let alertMessage = '';
     page.on('dialog', async dialog => {
       alertMessage = dialog.message();
@@ -109,13 +118,12 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
 
     await page.getByRole('button', { name: 'Salvar' }).click();
 
-    // O mock handleCreateEvent verifica `!formData.title` e retorna {success: false, error: 'O nome do evento é obrigatório.'} ou o HTML5 valida antes. Vamos verificar se alert foi chamado ou campo required
+    // O título é required no HTML; se a validação nativa não bloquear, o
+    // handleCreateEvent retorna erro via alert.
     const titleInput = page.getByPlaceholder('Nome do Evento');
     const isRequired = await titleInput.getAttribute('required');
 
-    // Se for required no html, o formulário não é submetido
-    // Se for validado via JS e dar alert
-    expect(isRequired !== null || alertMessage === 'O nome do evento é obrigatório.').toBeTruthy();
+    expect(isRequired !== null || alertMessage.length > 0).toBeTruthy();
   });
 
   test('deve testar os botões de Voltar e Cancelar na criação e edição, além de Editar Programação', async ({ page }) => {
@@ -191,6 +199,7 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
 test.describe('Admin - Gerenciamento de Programação do Evento', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
     await page.goto('/admin/eventos/1/programacao');
   });
 
@@ -217,7 +226,9 @@ test.describe('Admin - Gerenciamento de Programação do Evento', () => {
 
     await page.getByPlaceholder('Nome da atividade').fill('Almoço Teste');
     await page.getByPlaceholder('Descrição da atividade').fill('Testando descrição');
-    await page.locator('input[type="time"]').first().fill('12:00');
+    // O formulário exige horário de início e término
+    await page.locator('input[name="start"]').fill('12:00');
+    await page.locator('input[name="end"]').fill('13:00');
 
     // Salvar atividade
     await page.getByRole('button', { name: 'Confirmar' }).click();
@@ -243,25 +254,23 @@ test.describe('Admin - Gerenciamento de Programação do Evento', () => {
 
   test('deve excluir uma atividade existente', async ({ page }) => {
     const activityRows = page.locator('.flex.items-center.gap-4.py-4');
+    await expect(activityRows.first()).toBeVisible();
     const countBefore = await activityRows.count();
 
-    if (countBefore > 0) {
-      const btnExcluir = page.getByTitle('Excluir atividade').first();
-      await btnExcluir.click();
+    const btnExcluir = page.getByTitle('Excluir atividade').first();
+    await btnExcluir.click();
 
-      // Confirma no modal
-      const btnConfirmar = page.getByRole('button', { name: 'Sim' });
-      await btnConfirmar.click();
+    // Confirma no modal
+    await page.getByRole('button', { name: 'Sim' }).click();
 
-      // Verifica se o contador diminuiu
-      const countAfter = await activityRows.count();
-      expect(countAfter).toBe(countBefore - 1);
-    }
+    // A lista recarrega de forma assíncrona; toHaveCount espera estabilizar
+    await expect(activityRows).toHaveCount(countBefore - 1);
   });
 
   test('deve salvar a programação inteira', async ({ page }) => {
-    const btnSalvar = page.getByRole('button', { name: 'Salvar' });
-    await btnSalvar.click();
+    // O botão "Concluir" volta para a edição do evento
+    const btnConcluir = page.getByRole('button', { name: 'Concluir' });
+    await btnConcluir.click();
 
     // Redireciona de volta p/ a edição do evento
     await expect(page).toHaveURL(/\/admin\/eventos\/1\/editar/);
@@ -285,6 +294,7 @@ test.describe('Admin - Gerenciamento de Programação do Evento', () => {
 test.describe('Admin - Cobertura Extra de Branches', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await setupApiMock(page);
   });
 
   test('deve exibir alert ao criar evento com título mas sem local (Create.jsx L15)', async ({ page }) => {
@@ -296,9 +306,12 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
       await dialog.accept();
     });
 
-    // Preenche título e data mas NÃO preenche local
+    // Preenche título e datas mas NÃO seleciona o local no mapa
     await page.getByPlaceholder('Nome do Evento').fill('Evento Sem Local');
-    await page.locator('input[name="date"]').fill('2029-12-31');
+    await page.locator('input[name="startDay"]').fill('2029-12-30');
+    await page.locator('input[name="startTime"]').fill('08:00');
+    await page.locator('input[name="endDay"]').fill('2029-12-31');
+    await page.locator('input[name="endTime"]').fill('18:00');
 
     // Remove required dos inputs para bypass HTML5 validation
     await page.evaluate(() => {
@@ -307,7 +320,8 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
 
     await page.getByRole('button', { name: 'Salvar' }).click();
     await page.waitForTimeout(500);
-    expect(alertMessage).toContain('Local');
+    // Sem local selecionado, o serviço exige latitude/longitude
+    expect(alertMessage.toLowerCase()).toContain('latitude');
   });
 
   test('deve exibir alert ao editar evento limpando o título (Edit.jsx L32)', async ({ page }) => {
@@ -387,13 +401,19 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
   });
 
   test('deve cobrir Details.jsx com evento sem campos opcionais preenchidos (Details.jsx branches)', async ({ page }) => {
-    // Primeiro cria um evento mínimo no passado para aparecer em "Eventos Anteriores" com link "Detalhes"
+    // Cria um evento mínimo no passado (local pelo mapa) para aparecer em
+    // "Eventos Anteriores" com link "Detalhes"
     await page.goto('/admin/eventos/criar');
     await page.getByPlaceholder('Nome do Evento').fill('Evento Minimalista');
-    await page.locator('input[name="date"]').fill('2020-01-01');
-    await page.getByPlaceholder('Local do evento').fill('Local Teste');
+    await preencherLocalPelaBusca(page);
+    await page.locator('input[name="startDay"]').fill('2020-01-01');
+    await page.locator('input[name="startTime"]').fill('08:00');
+    await page.locator('input[name="endDay"]').fill('2020-01-01');
+    await page.locator('input[name="endTime"]').fill('18:00');
     await page.getByRole('button', { name: 'Salvar' }).click();
-    await expect(page).toHaveURL(/\/admin\/eventos/);
+    // Após criar vai para a programação; volta para a lista de eventos
+    await expect(page).toHaveURL(/\/admin\/eventos\/\d+\/programacao/);
+    await page.goto('/admin/eventos');
 
     // Acha o link Detalhes do novo evento especificamente
     const eventCard = page.locator('.flex.items-center.gap-4').filter({ hasText: 'Evento Minimalista' }).first();
@@ -401,7 +421,7 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
     await detalhesLink.click();
 
     await expect(page.getByRole('heading', { name: 'Detalhes do Evento' })).toBeVisible();
-    // Os campos opcionais devem ter o "—" como fallback
+    // Os campos opcionais (descrição, palestrantes, bandas) têm o "—" como fallback
     await expect(page.getByText('—').first()).toBeVisible();
   });
 
@@ -455,95 +475,29 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
     await expect(page).toHaveURL(/\/admin\/eventos\/1\/editar/);
   });
 
-  test('deve cobrir Details.jsx com todos os branches de fallback (L13, L83-99)', async ({ page }) => {
-    // Cria um evento mínimo sem campos opcionais para atingir todos os branches de fallback
-    await page.goto('/admin/eventos/criar');
-    await page.getByPlaceholder('Nome do Evento').fill('Evento Sem Opcionais');
-    await page.locator('input[name="date"]').fill('2020-06-01');
-    await page.getByPlaceholder('Local do evento').fill('Local X');
-    await page.getByRole('button', { name: 'Salvar' }).click();
-    await expect(page).toHaveURL(/\/admin\/eventos/);
-
-    // Injeta um voluntário mockado para este novo evento para que uma linha de voluntário seja renderizada
-    await page.evaluate(() => {
-      const events = JSON.parse(localStorage.getItem('idb_admin_events') || '[]');
-      const newEvent = events.find(e => e.title === 'Evento Sem Opcionais');
-      if (newEvent) {
-        const volunteers = JSON.parse(localStorage.getItem('idb_admin_volunteers') || '[]');
-        volunteers.push({
-          id: 9999,
-          eventId: newEvent.id,
-          name: 'Voluntário de Teste',
-          email: 'teste@voluntario.com',
-          status: 'pendente'
-        });
-        localStorage.setItem('idb_admin_volunteers', JSON.stringify(volunteers));
-      }
-    });
-
-    // Encontra e clica no link "Detalhes" do evento recém-criado
-    const eventCard = page.locator('.flex.items-center.gap-4').filter({ hasText: 'Evento Sem Opcionais' }).first();
-    await eventCard.getByRole('link', { name: 'Detalhes' }).click();
-
-    await expect(page.getByRole('heading', { name: 'Detalhes do Evento' })).toBeVisible();
-
-    // O fallback "—" deve aparecer para descrição, palestrantes, bandas
-    const dashes = page.getByText('—');
-    expect(await dashes.count()).toBeGreaterThanOrEqual(1);
-
-    // Navega de volta e clica em Voluntários
-    await page.getByRole('button', { name: 'Voltar' }).click();
-    await expect(page).toHaveURL(/\/admin\/eventos/);
-
-    // O evento recém-criado foi no passado (2020-06-01), então está em Eventos Anteriores
-    const pastEventCard = page.locator('.flex.items-center.gap-4').filter({ hasText: 'Evento Sem Opcionais' }).first();
-    await pastEventCard.getByRole('link', { name: 'Voluntários' }).click();
+  test('deve cobrir o fallback "#" do link Abrir Formulário (sem link de resposta)', async ({ page }) => {
+    // O evento 2 não tem formulario_link e seu voluntário não tem link_resposta,
+    // então o link "Abrir Formulário" deve cair no fallback "#".
+    await page.goto('/admin/voluntarios');
     await expect(page.getByRole('heading', { name: 'Voluntários' })).toBeVisible();
 
-    // Agora estamos na lista de eventos para voluntários. Clicar no botão do evento:
-    const volEventCard = page.locator('.bg-white.rounded-2xl').filter({ hasText: 'Evento Sem Opcionais' }).first();
+    const volEventCard = page.locator('.bg-white.rounded-2xl').filter({ hasText: 'Acampamento Jovem' }).first();
     await volEventCard.getByRole('link', { name: 'Voluntários Inscritos' }).click();
 
-    // O link deve ser "#" porque não fornecemos linkFormularioVoluntarios
+    await expect(page).toHaveURL(/\/admin\/voluntarios\/2/);
     const formLink = page.getByRole('link', { name: 'Abrir Formulário' }).first();
     await expect(formLink).toHaveAttribute('href', '#');
   });
 
   test('deve cobrir Details.jsx ?? branches com valores null (totalParticipantes/totalVoluntarios)', async ({ page }) => {
-    // Injeta um evento com null explícito para totalParticipantes e totalVoluntarios para cobrir os branches null coalescing ?? 0 nas linhas 70 e 78
-    await page.goto('/admin/eventos');
-
-    await page.evaluate(() => {
-      const events = JSON.parse(localStorage.getItem('idb_admin_events') || '[]');
-      events.push({
-        id: 77777,
-        title: 'Evento Null Fields',
-        date: '2019-01-01T00:00:00.000Z',
-        endDate: '2019-01-01T00:00:00.000Z',
-        location: null,
-        description: null,
-        totalParticipantes: null,
-        totalVoluntarios: null,
-        palestrantes: null,
-        bandas: null,
-        slug: 'evento-null-fields',
-        speakers: [],
-        schedule: [],
-        galeria: [],
-        featured: false,
-        category: 'Encontro',
-        image: '/images/galeria/idb-jovem-one.jpg',
-      });
-      localStorage.setItem('idb_admin_events', JSON.stringify(events));
-    });
-
-    // Navega para a página de detalhes deste evento
+    // O evento 77777 (mock) tem descrição, local, palestrantes e bandas vazios,
+    // exercitando os fallbacks "—" e os branches de null coalescing.
     await page.goto('/admin/eventos/77777');
 
     await expect(page.getByRole('heading', { name: 'Detalhes do Evento' })).toBeVisible();
     await expect(page.getByText('Evento Null Fields')).toBeVisible();
 
-    // totalParticipantes e totalVoluntarios devem mostrar "0"
+    // descrição, local, palestrantes e bandas devem mostrar "—"
     const dashes = page.getByText('—');
     expect(await dashes.count()).toBeGreaterThanOrEqual(4);
   });

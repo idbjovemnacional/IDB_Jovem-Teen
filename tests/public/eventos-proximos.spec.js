@@ -1,7 +1,9 @@
 import { test, expect } from '../helpers/testWithCoverage.js';
+import { setupApiMock } from '../helpers/apiMock';
 
 test.describe('Página Eventos Próximos', () => {
   test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
     await page.goto('/eventos-proximos');
   });
 
@@ -10,10 +12,10 @@ test.describe('Página Eventos Próximos', () => {
     await expect(titulo).toBeVisible();
   });
 
-  test('deve possuir um mapa (iframe) carregado', async ({ page }) => {
-    const iframe = page.locator('iframe[title="Mapa de Eventos Próximos"]');
-    await expect(iframe).toBeVisible();
-    await expect(iframe).toHaveAttribute('src', /google\.com\/maps\/embed/);
+  test('deve possuir um mapa (Leaflet) carregado', async ({ page }) => {
+    // O mapa agora é renderizado com Leaflet (não mais um iframe do Google)
+    const mapa = page.locator('.leaflet-container');
+    await expect(mapa).toBeVisible({ timeout: 15000 });
   });
 
   test('deve possuir um botão para voltar', async ({ page }) => {
