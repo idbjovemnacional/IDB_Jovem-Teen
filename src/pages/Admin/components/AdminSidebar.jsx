@@ -8,7 +8,6 @@ const sidebarLinks = [
   { label: "Eventos", path: "/admin/eventos", icon: CalendarDays },
   { label: "Voluntários", path: "/admin/voluntarios", icon: Users },
   { label: "Produtos", path: "/admin/produtos", icon: ShoppingCart },
-  { label: "Líderes", path: "/admin/lideres", icon: Users },
 ];
 
 export default function AdminSidebar({ isOpen, onClose }) {
