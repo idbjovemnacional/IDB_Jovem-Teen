@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, CalendarDays, Users, Music, CalendarCog, ImagePlus } from "lucide-react";
 import LocationPicker from "./LocationPicker";
 import TimeInput from "../../ui/TimeInput";
-import { splitDateTime } from "../../../services/eventService";
+import { splitDateTime, TIPOS_EVENTO } from "../../../services/eventService";
 import { toDriveImageUrl } from "../../../utils/driveImage";
 
 const inputClass =
@@ -22,6 +22,7 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
 
   const [form, setForm] = useState({
     title: initialData.title || "",
+    tipoEvento: initialData.tipoEvento || "",
     description: initialData.description || "",
     latitude: initialData.latitude ?? "",
     longitude: initialData.longitude ?? "",
@@ -82,6 +83,29 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
             className={inputClass}
             required
           />
+        </div>
+
+        <hr className="my-5 border-gray-100" />
+
+        {/* Tipo de evento */}
+        <div className="mb-1">
+          <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Tipo de evento</label>
+          <select
+            name="tipoEvento"
+            value={form.tipoEvento}
+            onChange={handleChange}
+            className={`${inputClass} sm:max-w-md`}
+            required
+          >
+            <option value="" disabled>
+              Selecione o tipo
+            </option>
+            {TIPOS_EVENTO.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
+          </select>
         </div>
 
         <hr className="my-5 border-gray-100" />

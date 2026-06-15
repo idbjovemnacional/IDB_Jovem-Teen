@@ -45,6 +45,7 @@ function userFromToken(token) {
     email: claims.email || "",
     roles,
     isAdmin: roles.some((r) => ADMIN_ROLES.includes(r)),
+    isSuperAdmin: roles.includes("superadmin"),
   };
 }
 
@@ -133,9 +134,10 @@ export function AuthProvider({ children }) {
 
   const isAuthenticated = !!user;
   const isAdmin = !!user?.isAdmin;
+  const isSuperAdmin = !!user?.isSuperAdmin;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, isAdmin }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, isAdmin, isSuperAdmin }}>
       {children}
     </AuthContext.Provider>
   );

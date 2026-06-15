@@ -5,6 +5,7 @@ import MainLayoutNoFooter from "../layouts/MainLayoutNoFooter";
 import AdminLayout from "../layouts/AdminLayout";
 
 import AdminRoute from "./AdminRoute";
+import SuperAdminRoute from "./SuperAdminRoute";
 
 import Home from "../pages/Home";
 import Eventos from "../pages/Eventos";
@@ -40,8 +41,10 @@ export default function AppRoutes() {
           <Route path="/admin/eventos/:id/editar" element={<AdminEventoEdit />} />
           <Route path="/admin/eventos/:id/programacao" element={<AdminEventoEditSchedule />} />
           <Route path="/admin/produtos" element={<AdminProdutos />} />
-          <Route path="/admin/produtos/criar" element={<AdminProdutoCreate />} />
-          <Route path="/admin/produtos/:id/editar" element={<AdminProdutoEdit />} />
+          <Route element={<SuperAdminRoute />}>
+            <Route path="/admin/produtos/criar" element={<AdminProdutoCreate />} />
+            <Route path="/admin/produtos/:id/editar" element={<AdminProdutoEdit />} />
+          </Route>
           <Route path="/admin/voluntarios" element={<AdminVoluntarios />} />
           <Route path="/admin/voluntarios/:eventId" element={<AdminVoluntarioDetails />} />
         </Route>

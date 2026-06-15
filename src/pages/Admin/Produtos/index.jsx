@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { fetchAllProducts, handleDeleteProduct } from "../../../services/productService";
+import { useAuth } from "../../../context/AuthContext";
 import useModal from "../../../hooks/useModal";
 import SectionTitle from "../../../components/ui/SectionTitle";
 import EmptyState from "../../../components/ui/EmptyState";
@@ -11,6 +12,7 @@ import DeleteProductModal from "./components/DeleteProductModal";
 
 export default function AdminProdutos() {
   const navigate = useNavigate();
+  const { isSuperAdmin } = useAuth();
   const deleteModal = useModal();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ export default function AdminProdutos() {
     }
   };
 
-  const rightContent = (
+  const rightContent = isSuperAdmin ? (
     <Link
       to="/admin/produtos/criar"
       className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors shadow-sm"
@@ -59,7 +61,7 @@ export default function AdminProdutos() {
       Cadastrar Produto
       <Plus size={18} />
     </Link>
-  );
+  ) : null;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -78,8 +80,8 @@ export default function AdminProdutos() {
               key={product.id}
               product={product}
               variant="full"
-              onEdit={handleEdit}
-              onDelete={(p) => deleteModal.open(p)}
+              onEdit={isSuperAdmin ? handleEdit : undefined}
+              onDelete={isSuperAdmin ? (p) => deleteModal.open(p) : undefined}
             />
           ))}
         </div>

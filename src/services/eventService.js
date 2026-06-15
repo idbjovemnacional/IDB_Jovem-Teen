@@ -158,12 +158,13 @@ function adaptEvent(apiEvent) {
     linkGaleria: apiEvent.link_galeria || "",
     linkFormularioVoluntarios: apiEvent.formulario_link || "",
     calendarioEventoId: apiEvent.calendario_evento_id || null,
+    tipoEvento: apiEvent.tipo_evento || "",
     /* URL da imagem de capa (Drive). image = valor exibido (com fallback);
        linkImagem = valor cru para o formulário (vazio quando não há). */
     linkImagem: apiEvent.link_imagem || "",
     image: toDriveImageUrl(apiEvent.link_imagem) || DEFAULT_EVENT_IMAGE,
-    /* Campos ainda não fornecidos pela API de evento → defaults seguros */
-    category: "Evento",
+    /* category espelha tipo_evento para alimentar o filtro da página de eventos */
+    category: apiEvent.tipo_evento || "Outros",
     featured: false,
     totalParticipantes: 0,
     totalVoluntarios: 0,
@@ -179,6 +180,7 @@ function toApiEvent(form) {
   const toIso = (v) => (v ? `${v}:00`.slice(0, 19) : null);
   return {
     nome: form.title,
+    tipo_evento: form.tipoEvento || null,
     descricao: form.description || null,
     local_latitude: Number(form.latitude),
     local_longitude: Number(form.longitude),
@@ -247,9 +249,14 @@ export async function getGroupedEvents() {
   return { proximos, anteriores };
 }
 
+export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Outros"];
+
 export async function handleCreateEvent(data) {
   if (!data.title || !data.title.trim()) {
     return { success: false, error: "Nome do evento é obrigatório." };
+  }
+  if (!TIPOS_EVENTO.includes(data.tipoEvento)) {
+    return { success: false, error: "Selecione o tipo de evento." };
   }
   if (!data.date || !data.endDate) {
     return { success: false, error: "Datas de início e término são obrigatórias." };
@@ -268,6 +275,9 @@ export async function handleCreateEvent(data) {
 export async function handleUpdateEvent(slugOrId, data) {
   if (!data.title || !data.title.trim()) {
     return { success: false, error: "Nome do evento é obrigatório." };
+  }
+  if (!TIPOS_EVENTO.includes(data.tipoEvento)) {
+    return { success: false, error: "Selecione o tipo de evento." };
   }
   const id = parseEventId(slugOrId);
   try {
