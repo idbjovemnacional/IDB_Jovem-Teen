@@ -81,7 +81,7 @@ export default function EventosSection({ events = [] }) {
           <div key={featured.id} className="relative z-10 flex flex-col items-center justify-center animate-fade-in-up px-4 min-w-0">
 
             {/* Container oval de fundo*/}
-            <div className="relative z-10 mb-8 flex justify-center items-center py-8 px-6 md:px-10 w-full max-w-[85%] sm:max-w-[75%] md:max-w-[350px] aspect-[4/3] sm:aspect-auto sm:min-h-[160px]">
+            <div className="relative z-10 mb-8 flex justify-center items-center py-8 px-4 md:px-6 w-full max-w-[90%] sm:max-w-[85%] md:max-w-[420px] aspect-[4/3] sm:aspect-auto sm:min-h-[160px]">
 
               <div
                 className="absolute inset-0 bg-[#DE6B16] rounded-[100%] -z-10 shadow-lg"
@@ -90,7 +90,7 @@ export default function EventosSection({ events = [] }) {
 
               <h3
                 className="font-black uppercase leading-[0.95] text-white text-center tracking-tighter w-full line-clamp-3 sm:line-clamp-4"
-                style={{ fontSize: "clamp(1.8rem, 4vw, 3.2rem)", transform: "scaleY(1.05)" }}
+                style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)", transform: "scaleY(1.05)" }}
                 title={featured.title}
               >
                 {featured.title}
