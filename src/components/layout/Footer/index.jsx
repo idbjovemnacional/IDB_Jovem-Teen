@@ -62,7 +62,7 @@ export default function Footer() {
               to="/eventos"
               className="px-6 py-3 bg-[#FF7F11] text-white font-bold rounded-2xl hover:bg-[#E56A00] transition-all shadow-[4px_4px_0_#2B2B2B] active:translate-y-1 active:shadow-none uppercase tracking-wide text-sm border-[2.5px] border-[#2B2B2B]"
             >
-              SEJA VOLUNTÁRIO
+              SEJA UM VOLUNTÁRIO
             </Link>
           </div>
         </div>

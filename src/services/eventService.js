@@ -249,7 +249,7 @@ export async function getGroupedEvents() {
   return { proximos, anteriores };
 }
 
-export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Outros"];
+export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Campanha Nacional", "Outros"];
 
 export async function handleCreateEvent(data) {
   if (!data.title || !data.title.trim()) {

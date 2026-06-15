@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 
-const tiposEvento = ["Tipo de evento", "Conferência", "Acampamento", "Outros"];
+const tiposEvento = ["Tipo de evento", "Conferência", "Acampamento", "Campanha Nacional", "Outros"];
 const regioes = ["Região", "Norte", "Nordeste", "Centro-Oeste", "Sul", "Sudeste"];
 const datas = ["Data", "Esta semana", "Este mês", "Próximos 3 meses"];
 
