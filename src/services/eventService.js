@@ -196,7 +196,8 @@ function adaptActivity(apiAct) {
 }
 
 function toApiActivity(form, eventDate) {
-  const dia = (eventDate ? String(eventDate) : new Date().toISOString()).slice(0, 10);
+  const fallback = (eventDate ? String(eventDate) : new Date().toISOString()).slice(0, 10);
+  const dia = (form.day ? String(form.day) : fallback).slice(0, 10);
   const combinar = (hora) => (hora ? `${dia}T${hora}:00` : null);
   return {
     nome: form.name,

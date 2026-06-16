@@ -88,6 +88,9 @@ export default function AdminEventoEditSchedule() {
     }
   };
 
+  const dayKey = (v) => (String(v || "").match(/\d{4}-\d{2}-\d{2}/) || [""])[0];
+  const isMultiDay = !!event && dayKey(event.endDate) !== "" && dayKey(event.endDate) !== dayKey(event.date);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 animate-fade-in">
@@ -136,12 +139,15 @@ export default function AdminEventoEditSchedule() {
                     initialData={item}
                     onSave={handleEditActivity}
                     onCancel={() => setEditingItem(null)}
+                    eventStart={event?.date}
+                    eventEnd={event?.endDate}
                   />
                 ) : (
                   <ActivityRow
                     item={item}
                     onEdit={(it) => setEditingItem(it)}
                     onDelete={(it) => deleteModal.open(it)}
+                    showDay={isMultiDay}
                   />
                 )}
               </div>
@@ -171,6 +177,8 @@ export default function AdminEventoEditSchedule() {
           <ActivityInlineForm
             onSave={handleAddActivity}
             onCancel={() => setShowAddForm(false)}
+            eventStart={event?.date}
+            eventEnd={event?.endDate}
           />
         )}
 

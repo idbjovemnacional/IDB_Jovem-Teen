@@ -1,8 +1,15 @@
 import { Pencil, Trash2 } from "lucide-react";
 
-export default function ActivityRow({ item, onEdit, onDelete }) {
+export default function ActivityRow({ item, onEdit, onDelete, showDay = false }) {
   return (
     <div className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0 group hover:bg-gray-50/50 px-2 rounded-lg transition-colors">
+      {showDay && (
+        <div className="shrink-0 flex flex-col items-center justify-center bg-[#FDF3EA] rounded-lg px-2.5 py-1.5 min-w-[46px] border border-[#FF6D2C]/20">
+          <span className="text-[#FF6D2C] font-bold text-base leading-none">{item.day}</span>
+          <span className="text-[#FF6D2C] font-semibold text-[10px] uppercase">{item.month}</span>
+        </div>
+      )}
+
       {/* Nome */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-[#1E1E1E] truncate">{item.name}</p>
