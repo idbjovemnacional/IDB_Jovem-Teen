@@ -1,5 +1,6 @@
 import { api } from "./api";
 import idbJovemOne from "../assets/images/idbJovemOne.png";
+import { toBackendImageUrl } from "../utils/driveImage";
 
 const DEFAULT_SPEAKER_IMAGE = idbJovemOne;
 
@@ -8,7 +9,8 @@ function adaptSpeaker(apiSpeaker) {
   return {
     id: apiSpeaker.participante_id,
     name: apiSpeaker.nome,
-    image: apiSpeaker.link_foto || DEFAULT_SPEAKER_IMAGE,
+    photoLink: apiSpeaker.link_foto || "",
+    image: apiSpeaker.link_foto ? toBackendImageUrl(apiSpeaker.link_foto) : DEFAULT_SPEAKER_IMAGE,
     role: apiSpeaker.profissao || "",
   };
 }
@@ -22,7 +24,17 @@ function toApiSpeaker(form) {
 }
 
 function getErrorMessage(error, fallback) {
-  return error?.response?.data?.detail || error?.message || fallback;
+  const detail = error?.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    const msg = detail
+      .map((d) => (typeof d === "string" ? d : d?.msg))
+      .filter(Boolean)
+      .join("; ");
+    if (msg) return msg;
+  }
+  if (typeof detail === "string" && detail) return detail;
+  if (detail && typeof detail === "object" && detail.msg) return detail.msg;
+  return error?.message || fallback;
 }
 
 export async function fetchSpeakers() {
@@ -37,7 +49,9 @@ export async function fetchSpeakerById(participanteId) {
 
 export async function fetchSpeakersByEvent(eventId) {
   const { data } = await api.get(`/evento/${eventId}/participantes`);
-  return data.map(adaptSpeaker);
+  const isBanda = (s) => (s.profissao || "") === "Banda";
+  const ordenados = [...data].sort((a, b) => Number(isBanda(a)) - Number(isBanda(b)));
+  return ordenados.map(adaptSpeaker);
 }
 
 export async function handleCreateSpeaker(form) {
@@ -49,6 +63,15 @@ export async function handleCreateSpeaker(form) {
     return { success: true, speaker: adaptSpeaker(data) };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao criar participante.") };
+  }
+}
+
+export async function handleUpdateSpeaker(participanteId, form) {
+  try {
+    const { data } = await api.put(`/banda-palestrante/${participanteId}`, toApiSpeaker(form));
+    return { success: true, speaker: adaptSpeaker(data) };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao atualizar participante.") };
   }
 }
 

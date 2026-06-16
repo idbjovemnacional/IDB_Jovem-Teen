@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, CalendarDays, Users, Music, CalendarCog, ImagePlus } from "lucide-react";
+import { MapPin, CalendarDays, Users, Music, CalendarCog, ImagePlus, Plus, Trash2 } from "lucide-react";
 import LocationPicker from "./LocationPicker";
 import TimeInput from "../../ui/TimeInput";
 import { splitDateTime, TIPOS_EVENTO } from "../../../services/eventService";
@@ -12,6 +12,97 @@ const inputClass =
 /* Base sem w-full para os campos de data/hora (largura controlada via flex) */
 const dateTimeBase =
   "border border-gray-300 rounded-lg px-3 py-3 bg-[#FFF8F3] text-sm text-[#1E1E1E] focus:border-[#FF6D2C] focus:ring-2 focus:ring-[#FF6D2C]/20 transition-all";
+
+function normalizeParticipants(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((p) =>
+        typeof p === "string"
+          ? { name: p.trim(), image: "" }
+          : { name: (p?.name || "").trim(), image: (p?.image || "").trim() }
+      )
+      .filter((p) => p.name || p.image);
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value
+      .split(",")
+      .map((name) => ({ name: name.trim(), image: "" }))
+      .filter((p) => p.name);
+  }
+  return [];
+}
+
+function withDefaultRow(rows) {
+  return rows.length > 0 ? rows : [{ name: "", image: "" }];
+}
+
+function ParticipantSection({
+  label,
+  icon,
+  namePlaceholder,
+  addTitle,
+  removeTitle,
+  helpText,
+  items,
+  onChange,
+  onAdd,
+  onRemove,
+}) {
+  return (
+    <div className="mb-1">
+      <div className="flex items-center justify-between mb-2">
+        <label className="flex items-center gap-2 text-sm font-bold text-[#1E1E1E]">
+          {icon}
+          {label}
+        </label>
+        <button
+          type="button"
+          onClick={onAdd}
+          title={addTitle}
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#FF6D2C] hover:text-[#e65c18] transition-colors"
+        >
+          <Plus size={18} />
+          Adicionar
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {items.map((item, index) => (
+          <div key={index} className="flex flex-col sm:flex-row gap-2 sm:items-start">
+            <input
+              type="text"
+              value={item.name}
+              onChange={(e) => onChange(index, "name", e.target.value)}
+              placeholder={namePlaceholder}
+              className={`${inputClass} sm:flex-1`}
+            />
+            <div className="flex gap-2 sm:flex-1">
+              <div className="relative flex-1">
+                <input
+                  type="url"
+                  value={item.image}
+                  onChange={(e) => onChange(index, "image", e.target.value)}
+                  placeholder="Link da foto (Google Drive)"
+                  className={`${inputClass} pr-10`}
+                />
+                <ImagePlus size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                title={removeTitle}
+                className="shrink-0 w-11 flex items-center justify-center rounded-lg border border-gray-300 text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {helpText && <p className="mt-1.5 text-xs text-[#1E1E1E]/50">{helpText}</p>}
+    </div>
+  );
+}
 
 export default function EventForm({ initialData = {}, onSubmit, eventId }) {
   const navigate = useNavigate();
@@ -30,17 +121,29 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
     startTime: start.time,
     endDay: end.day,
     endTime: end.time,
-    palestrantes: initialData.palestrantes || "",
-    bandas: initialData.bandas || "",
     linkGaleria: initialData.linkGaleria || "",
     linkFormularioVoluntarios: initialData.linkFormularioVoluntarios || "",
     image: initialData.linkImagem || "",
   });
 
+  const [palestrantes, setPalestrantes] = useState(
+    withDefaultRow(normalizeParticipants(initialData.palestrantes))
+  );
+  const [bandas, setBandas] = useState(
+    withDefaultRow(normalizeParticipants(initialData.bandas))
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  const changeRow = (setList) => (index, field, value) =>
+    setList((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  const addRow = (setList) => () =>
+    setList((prev) => [...prev, { name: "", image: "" }]);
+  const removeRow = (setList) => (index) =>
+    setList((prev) => withDefaultRow(prev.filter((_, i) => i !== index)));
 
   const handleLocationChange = (lat, lng) => {
     setForm((prev) => ({
@@ -58,7 +161,17 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
         form.startDay && form.startTime ? `${form.startDay}T${form.startTime}` : "";
       const endDate =
         form.endDay && form.endTime ? `${form.endDay}T${form.endTime}` : "";
-      await onSubmit({ ...form, date, endDate });
+      const limpar = (lista) =>
+        lista
+          .map((p) => ({ name: p.name.trim(), image: p.image.trim() }))
+          .filter((p) => p.name);
+      await onSubmit({
+        ...form,
+        palestrantes: limpar(palestrantes),
+        bandas: limpar(bandas),
+        date,
+        endDate,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -195,37 +308,35 @@ export default function EventForm({ initialData = {}, onSubmit, eventId }) {
 
         <hr className="my-5 border-gray-100" />
 
-        {/* Palestrantes + Bandas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-1">
-          <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Palestrantes</label>
-            <div className="relative">
-              <input
-                type="text"
-                name="palestrantes"
-                value={form.palestrantes}
-                onChange={handleChange}
-                placeholder="Palestrantes"
-                className={`${inputClass} pr-10`}
-              />
-              <Users size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-[#1E1E1E] mb-2">Bandas</label>
-            <div className="relative">
-              <input
-                type="text"
-                name="bandas"
-                value={form.bandas}
-                onChange={handleChange}
-                placeholder="Bandas"
-                className={`${inputClass} pr-10`}
-              />
-              <Music size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E1E1E]/30" />
-            </div>
-          </div>
-        </div>
+        {/* Palestrantes — cada palestrante tem nome e a sua própria foto (link do Drive) */}
+        <ParticipantSection
+          label="Palestrantes"
+          icon={<Users size={16} className="text-[#FF6D2C]" />}
+          namePlaceholder="Nome do palestrante"
+          addTitle="Adicionar palestrante"
+          removeTitle="Remover palestrante"
+          helpText="Cole o link da foto de cada palestrante (Google Drive compartilhado como “qualquer pessoa com o link”)."
+          items={palestrantes}
+          onChange={changeRow(setPalestrantes)}
+          onAdd={addRow(setPalestrantes)}
+          onRemove={removeRow(setPalestrantes)}
+        />
+
+        <hr className="my-5 border-gray-100" />
+
+        {/* Bandas — cada banda tem nome e a sua própria foto (link do Drive) */}
+        <ParticipantSection
+          label="Bandas"
+          icon={<Music size={16} className="text-[#FF6D2C]" />}
+          namePlaceholder="Nome da banda"
+          addTitle="Adicionar banda"
+          removeTitle="Remover banda"
+          helpText="Cole o link da foto de cada banda (Google Drive compartilhado como “qualquer pessoa com o link”)."
+          items={bandas}
+          onChange={changeRow(setBandas)}
+          onAdd={addRow(setBandas)}
+          onRemove={removeRow(setBandas)}
+        />
 
         <hr className="my-5 border-gray-100" />
 

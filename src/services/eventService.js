@@ -1,7 +1,7 @@
 import { api } from "./api";
 import defaultEventImage from "../assets/images/idbJovemOne.png";
 import { toDriveImageUrl } from "../utils/driveImage";
-import { fetchSpeakers, handleCreateSpeaker } from "./speakerService";
+import { fetchSpeakers, handleCreateSpeaker, handleUpdateSpeaker } from "./speakerService";
 
 const DEFAULT_EVENT_IMAGE = defaultEventImage;
 
@@ -156,8 +156,8 @@ function adaptEvent(apiEvent) {
     speakers: [],
     schedule: [],
     galeria: [],
-    palestrantes: "",
-    bandas: "",
+    palestrantes: [],
+    bandas: [],
   };
 }
 
@@ -207,7 +207,17 @@ function toApiActivity(form, eventDate) {
 }
 
 function getErrorMessage(error, fallback) {
-  return error?.response?.data?.detail || error?.message || fallback;
+  const detail = error?.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    const msg = detail
+      .map((d) => (typeof d === "string" ? d : d?.msg))
+      .filter(Boolean)
+      .join("; ");
+    if (msg) return msg;
+  }
+  if (typeof detail === "string" && detail) return detail;
+  if (detail && typeof detail === "object" && detail.msg) return detail.msg;
+  return error?.message || fallback;
 }
 
 export async function fetchAllEvents() {
@@ -230,10 +240,16 @@ export async function fetchEventById(slugOrId) {
     if (partData && partData.length > 0) {
       const palestrantes = partData.filter(p => p.profissao !== "Banda");
       const bandas = partData.filter(p => p.profissao === "Banda");
-      event.palestrantes = palestrantes.map((p) => p.nome).join(", ");
-      event.bandas = bandas.map((p) => p.nome).join(", ");
+      event.palestrantes = palestrantes.map((p) => ({
+        name: p.nome,
+        image: p.link_foto || "",
+      }));
+      event.bandas = bandas.map((p) => ({
+        name: p.nome,
+        image: p.link_foto || "",
+      }));
     }
-  } catch (err) {
+  } catch {
     // ignorar falha ao buscar participantes
   }
   return event;
@@ -248,11 +264,23 @@ export async function getGroupedEvents() {
 
 export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Campanha Nacional", "Outros"];
 
-async function syncEventSpeakers(eventId, palestrantesString, bandasString) {
+function normalizeParticipantInput(input) {
+  if (Array.isArray(input)) {
+    return input
+      .map((p) => ({ name: (p?.name || "").trim(), image: (p?.image || "").trim() }))
+      .filter((p) => p.name);
+  }
+  return (input || "")
+    .split(",")
+    .map((name) => ({ name: name.trim(), image: "" }))
+    .filter((p) => p.name);
+}
+
+async function syncEventSpeakers(eventId, palestrantesInput, bandasInput) {
   try {
-    const palNames = (palestrantesString || "").split(",").map((s) => s.trim()).filter(Boolean);
-    const bandaNames = (bandasString || "").split(",").map((s) => s.trim()).filter(Boolean);
-    const allNames = [...palNames, ...bandaNames];
+    const palestrantes = normalizeParticipantInput(palestrantesInput);
+    const bandas = normalizeParticipantInput(bandasInput);
+    const allNames = [...palestrantes, ...bandas].map((p) => p.name);
 
     const { data: linkedData } = await api.get(`/evento/${eventId}/participantes`);
     const linkedSpeakers = linkedData.map((p) => ({ id: p.participante_id, name: p.nome }));
@@ -267,37 +295,33 @@ async function syncEventSpeakers(eventId, palestrantesString, bandasString) {
 
     const allSpeakers = await fetchSpeakers().catch(() => []);
 
-    for (const name of palNames) {
-      let speaker = allSpeakers.find((s) => s.name.toLowerCase() === name.toLowerCase());
-      
-      if (!speaker) {
-        const res = await handleCreateSpeaker({ name, role: "Palestrante" });
-        if (res.success) {
-          speaker = res.speaker;
+    const sync = async (participants, role) => {
+      for (const item of participants) {
+        let speaker = allSpeakers.find((s) => s.name.toLowerCase() === item.name.toLowerCase());
+
+        if (!speaker) {
+          const res = await handleCreateSpeaker({ name: item.name, role, image: item.image });
+          if (res.success) speaker = res.speaker;
+        } else if (item.image && item.image !== speaker.photoLink) {
+          // participante já existe e a foto mudou → atualiza o link da foto
+          const res = await handleUpdateSpeaker(speaker.id, {
+            name: speaker.name,
+            role: speaker.role || role,
+            image: item.image,
+          });
+          if (res.success) speaker = res.speaker;
+        }
+
+        if (speaker && !linkedSpeakers.find((s) => s.id === speaker.id)) {
+          await api.post(`/evento/${eventId}/participantes/${speaker.id}`).catch(() => { });
         }
       }
+    };
 
-      if (speaker && !linkedSpeakers.find((s) => s.id === speaker.id)) {
-        await api.post(`/evento/${eventId}/participantes/${speaker.id}`).catch(() => { });
-      }
-    }
-
-    for (const name of bandaNames) {
-      let speaker = allSpeakers.find((s) => s.name.toLowerCase() === name.toLowerCase());
-      
-      if (!speaker) {
-        const res = await handleCreateSpeaker({ name, role: "Banda" });
-        if (res.success) {
-          speaker = res.speaker;
-        }
-      }
-
-      if (speaker && !linkedSpeakers.find((s) => s.id === speaker.id)) {
-        await api.post(`/evento/${eventId}/participantes/${speaker.id}`).catch(() => { });
-      }
-    }
+    await sync(palestrantes, "Palestrante");
+    await sync(bandas, "Banda");
   } catch (err) {
-    console.error("Erro ao sincronizar palestrantes:", err);
+    console.error("Erro ao sincronizar participantes:", err);
   }
 }
 

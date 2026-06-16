@@ -120,7 +120,9 @@ export default function AdminEventoDetails() {
                 Palestrantes
               </td>
               <td className="py-4 px-6 font-bold text-[#FF6D2C] text-sm sm:text-base">
-                {event.palestrantes || "—"}
+                {(Array.isArray(event.palestrantes)
+                  ? event.palestrantes.map((p) => p.name).join(", ")
+                  : event.palestrantes) || "—"}
               </td>
             </tr>
             <tr>
@@ -128,7 +130,9 @@ export default function AdminEventoDetails() {
                 Bandas
               </td>
               <td className="py-4 px-6 font-bold text-[#FF6D2C] text-sm sm:text-base">
-                {event.bandas || "—"}
+                {(Array.isArray(event.bandas)
+                  ? event.bandas.map((b) => b.name).join(", ")
+                  : event.bandas) || "—"}
               </td>
             </tr>
           </tbody>

@@ -2,13 +2,6 @@ import { test, expect } from '../helpers/testWithCoverage.js';
 import { loginAsAdmin } from '../helpers/adminAuth';
 import { setupApiMock } from '../helpers/apiMock';
 
-async function preencherLocalPelaBusca(page) {
-  const busca = page.getByPlaceholder('Digite o nome ou endereço do local');
-  await busca.fill('Igreja IDB');
-  // Resultado da busca mockada
-  await page.getByText('Igreja IDB, Recife - PE').click();
-}
-
 test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
@@ -42,8 +35,9 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
     await page.locator('input[name="startTime"]').fill('09:00');
     await page.locator('input[name="endDay"]').fill('2029-12-31');
     await page.locator('input[name="endTime"]').fill('18:00');
-    await page.getByPlaceholder('Palestrantes').fill('Pr. Dev');
-    await page.getByPlaceholder('Bandas').fill('Banda QA');
+    await page.getByPlaceholder('Nome do palestrante').first().fill('Pr. Dev');
+    await page.getByPlaceholder('Nome da banda').first().fill('Banda QA');
+    await page.getByPlaceholder('Link da foto (Google Drive)').first().fill('https://drive.google.com/file/d/abc123/view');
     await page.locator('input[name="linkFormularioVoluntarios"]').fill('https://forms.gle/teste');
 
     await page.getByRole('button', { name: 'Salvar' }).click();
@@ -281,8 +275,7 @@ test.describe('Admin - Gerenciamento de Programação do Evento', () => {
 
     // Verifica se o contador diminuiu
     await expect(activityRows).toHaveCount(countBefore - 1);
-  }
-  );
+  });
 
   test('deve salvar a programação inteira', async ({ page }) => {
     const btnSalvar = page.getByRole('button', { name: 'Salvar' });
