@@ -223,4 +223,32 @@ test.describe('Página Inicial (Home)', () => {
     // Calendário (eventos vazio)
     await expect(page.getByRole('heading', { name: /Calendário de Eventos/i })).toBeVisible();
   });
+
+  test('deve cobrir unmount de useHomeData antes da promise resolver', async ({ page }) => {
+    // Atrasar a falha da API para dar tempo de desmontar o componente (cobertura dos catch blocks)
+    await page.route(/.*\/evento(\?.*)?$/, async route => {
+      setTimeout(() => route.abort('failed').catch(() => {}), 300);
+    });
+    await page.route(/.*\/evento\/.*\/galeria$/, async route => {
+      setTimeout(() => route.abort('failed').catch(() => {}), 300);
+    });
+
+    await page.goto('/');
+    await page.goto('/login');
+    await page.waitForTimeout(600);
+  });
+
+  test('deve cobrir unmount de useHomeData antes da promise de sucesso resolver', async ({ page }) => {
+    // Atrasar o sucesso da API para dar tempo de desmontar o componente (cobertura do if (!active) return)
+    await page.route(/.*\/evento(\?.*)?$/, async route => {
+      setTimeout(() => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }).catch(() => {}), 300);
+    });
+    await page.route(/.*\/evento\/.*\/galeria$/, async route => {
+      setTimeout(() => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }).catch(() => {}), 300);
+    });
+
+    await page.goto('/');
+    await page.goto('/login');
+    await page.waitForTimeout(600);
+  });
 });

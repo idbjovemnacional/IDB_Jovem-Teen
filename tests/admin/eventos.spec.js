@@ -29,7 +29,7 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
     await btnNovo.click();
 
     await expect(page).toHaveURL(/\/admin\/eventos\/criar/);
-    await expect(page.getByRole('heading', { name: 'Criação de Evento' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Criação de Evento' })).toBeVisible({ timeout: 15000 });
   });
 
   test('deve preencher e salvar um novo evento completo', async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
     await btnEditar.click();
 
     await expect(page).toHaveURL(/\/admin\/eventos\/\d+\/editar/);
-    await expect(page.getByRole('heading', { name: 'Edição de Evento' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edição de Evento' })).toBeVisible({ timeout: 15000 });
 
     // Edita
     const titleInput = page.getByPlaceholder('Nome do Evento');

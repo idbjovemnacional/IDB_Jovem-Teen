@@ -89,11 +89,11 @@ export default function TestCoverage() {
     levenshteinDistance("", "a");
     normalizeString(null);
 
-    eventService.handleUpdateEvent('invalid-id', { title: 'Valido' }).catch(() => {});
-    eventService.handleDeleteEvent('invalid-id').catch(() => {});
-    eventService.handleCreateEvent({ title: '', date: '', location: '' }).catch(() => {});
-    eventService.handleCreateEvent({ title: 'A', date: '', location: '' }).catch(() => {});
-    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: '' }).catch(() => {});
+    eventService.handleUpdateEvent('invalid-id', { title: 'Valido' }).catch(() => { });
+    eventService.handleDeleteEvent('invalid-id').catch(() => { });
+    eventService.handleCreateEvent({ title: '', date: '', location: '' }).catch(() => { });
+    eventService.handleCreateEvent({ title: 'A', date: '', location: '' }).catch(() => { });
+    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: '' }).catch(() => { });
     eventService.toInputDateTime(null);
     eventService.toInputDateTime("2025-01-01T00:00:00Z");
     eventService.extractDayMonth(null);
@@ -101,34 +101,34 @@ export default function TestCoverage() {
     eventService.isFutureEvent(null);
     eventService.isFutureEvent('2020-01-01');
     eventService.isFutureEvent('2099-01-01');
-    eventService.getGroupedEvents().catch(() => {});
-    eventService.fetchAllEvents().catch(() => {});
-    productService.handleUpdateProduct('invalid-id', { name: 'Valido' }).catch(() => {});
-    productService.handleDeleteProduct('invalid-id').catch(() => {});
-    productService.handleCreateProduct({ name: '', price: 0 }).catch(() => {});
-    productService.handleCreateProduct({ name: 'P', price: 0 }).catch(() => {});
-    productService.fetchAllProducts().catch(() => {});
-    productService.fetchProductById(1).catch(() => {});
-    productService.fetchProductById('invalid-id').catch(() => {});
-    volunteerService.handleUpdateStatus('invalid-id', 'aprovado').catch(() => {});
-    volunteerService.handleUpdateStatus('invalid-id', 'invalid-status').catch(() => {});
-    volunteerService.getVolunteerStats('invalid-id').catch(() => {});
-    volunteerService.fetchVolunteersByEvent(1).catch(() => {});
-    volunteerService.getVolunteerStats(1).catch(() => {});
+    eventService.getGroupedEvents().catch(() => { });
+    eventService.fetchAllEvents().catch(() => { });
+    productService.handleUpdateProduct('invalid-id', { name: 'Valido' }).catch(() => { });
+    productService.handleDeleteProduct('invalid-id').catch(() => { });
+    productService.handleCreateProduct({ name: '', price: 0 }).catch(() => { });
+    productService.handleCreateProduct({ name: 'P', price: 0 }).catch(() => { });
+    productService.fetchAllProducts().catch(() => { });
+    productService.fetchProductById(1).catch(() => { });
+    productService.fetchProductById('invalid-id').catch(() => { });
+    volunteerService.handleUpdateStatus('invalid-id', 'aprovado').catch(() => { });
+    volunteerService.handleUpdateStatus('invalid-id', 'invalid-status').catch(() => { });
+    volunteerService.getVolunteerStats('invalid-id').catch(() => { });
+    volunteerService.fetchVolunteersByEvent(1).catch(() => { });
+    volunteerService.getVolunteerStats(1).catch(() => { });
 
-    volunteerService.getAllVolunteers().catch(() => {});
-    volunteerService.getVolunteerById('invalid-id').catch(() => {});
-    volunteerService.getVolunteersByEventId(1).catch(() => {});
-    volunteerService.updateVolunteerStatus('invalid-id', 'aprovado').catch(() => {});
-    volunteerService.countVolunteersByEvent(1).catch(() => {}); // L46
+    volunteerService.getAllVolunteers().catch(() => { });
+    volunteerService.getVolunteerById('invalid-id').catch(() => { });
+    volunteerService.getVolunteersByEventId(1).catch(() => { });
+    volunteerService.updateVolunteerStatus('invalid-id', 'aprovado').catch(() => { });
+    volunteerService.countVolunteersByEvent(1).catch(() => { }); // L46
     eventService.parseEventId('12-evento');
-    eventService.searchEvents('ab').catch(() => {});
-    eventService.fetchActivities('invalid-id').catch(() => {});
-    productService.getAllProducts().catch(() => {});
-    productService.getProductById('invalid-id').catch(() => {});
-    productService.updateProduct('invalid-id', {}).catch(() => {});
-    productService.deleteProduct('invalid-id').catch(() => {});
-    productService.deleteProduct(1).catch(() => {});
+    eventService.searchEvents('ab').catch(() => { });
+    eventService.fetchActivities('invalid-id').catch(() => { });
+    productService.getAllProducts().catch(() => { });
+    productService.getProductById('invalid-id').catch(() => { });
+    productService.updateProduct('invalid-id', {}).catch(() => { });
+    productService.deleteProduct('invalid-id').catch(() => { });
+    productService.deleteProduct(1).catch(() => { });
 
     const evKey = 'idb_admin_events';
     const prKey = 'idb_admin_products';
@@ -136,7 +136,7 @@ export default function TestCoverage() {
     const savedPr = localStorage.getItem(prKey);
     localStorage.setItem(evKey, JSON.stringify([]));
     localStorage.setItem(prKey, JSON.stringify([]));
-    productService.createProduct({ name: 'Empty Test' }).catch(() => {});
+    productService.createProduct({ name: 'Empty Test' }).catch(() => { });
 
     const restoreStorage = (key, val) => {
       if (val) localStorage.setItem(key, val);
@@ -155,47 +155,45 @@ export default function TestCoverage() {
 
     const div = document.createElement('div');
     const root = createRoot(div);
+    const DummyChild = () => {
+      useAuth();
+      return null;
+    };
+
     const Dummy = () => {
       try {
         useAuth();
       } catch (e) {
         void e;
       }
-      return <AuthProvider><div>Teste AuthProvider</div></AuthProvider>;
+      return <AuthProvider>
+        <div>Teste AuthProvider</div>
+        <DummyChild />
+      </AuthProvider>;
     };
     root.render(<Dummy />);
 
-    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', endDate: '2025-01-02', location: 'L' }).catch(() => {});
-    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: 'L' }).catch(() => {});
-    eventService.handleCreateEvent({ title: '   ', date: '2025-01-01', location: 'L' }).catch(() => {});
-    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: '   ' }).catch(() => {});
-    eventService.handleUpdateEvent('invalid-id', { title: 'Valido', date: '2025-01-01', endDate: '2025-01-02' }).catch(() => {});
-    eventService.handleUpdateEvent('invalid-id', { title: 'Valido', date: '2025-01-01' }).catch(() => {});
-    eventService.handleUpdateEvent('invalid-id', { title: '   ' }).catch(() => {});
+    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', endDate: '2025-01-02', location: 'L' }).catch(() => { });
+    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: 'L' }).catch(() => { });
+    eventService.handleCreateEvent({ title: '   ', date: '2025-01-01', location: 'L' }).catch(() => { });
+    eventService.handleCreateEvent({ title: 'A', date: '2025-01-01', location: '   ' }).catch(() => { });
+    eventService.handleUpdateEvent('invalid-id', { title: 'Valido', date: '2025-01-01', endDate: '2025-01-02' }).catch(() => { });
+    eventService.handleUpdateEvent('invalid-id', { title: 'Valido', date: '2025-01-01' }).catch(() => { });
+    eventService.handleUpdateEvent('invalid-id', { title: '   ' }).catch(() => { });
     eventService.formatDate(null);
     eventService.formatDate('2025-01-01T12:00:00Z');
 
-    // === COVERAGE: formatTimeRange L67 (empty time branches) ===
-    eventService.splitDateTime(null); // covers parseWallClock returning null in splitDateTime
-    eventService.splitDateTime('2025-01-01'); // covers day-only (no time) branch
+    eventService.splitDateTime(null);
+    eventService.splitDateTime('2025-01-01');
 
-    // === COVERAGE: toFormResponseUrl L128-130 ===
-    eventService.toFormResponseUrl(null); // returns ""
-    eventService.toFormResponseUrl(''); // returns ""
-    eventService.toFormResponseUrl('http://example.com'); // non-google-forms, returns as-is
-    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/edit'); // /edit → /viewform
-    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/edit?pli=1'); // /edit? → /viewform?
-    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/viewform#anchor'); // strip hash
-    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/viewform'); // already viewform
+    eventService.toFormResponseUrl(null);
+    eventService.toFormResponseUrl('');
+    eventService.toFormResponseUrl('http://example.com');
+    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/edit');
+    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/edit?pli=1');
+    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/viewform#anchor');
+    eventService.toFormResponseUrl('https://docs.google.com/forms/d/abc/viewform');
 
-    // === COVERAGE: getErrorMessage L210-220 ===
-    // exercised via creating errors with different shapes:
-    // These are internal functions, but we trigger them via failing API calls that will
-    // exercise them in the catch blocks. Let's also ensure the TestCoverage spec
-    // covers these by making error-returning API calls.
-
-    // === COVERAGE: normalizeParticipantInput L273-276 (string input) ===
-    // Exercised through handleCreateEvent/handleUpdateEvent with string palestrantes/bandas
     eventService.handleCreateEvent({
       title: 'Teste Participantes String',
       tipoEvento: 'Conferência',
@@ -203,21 +201,19 @@ export default function TestCoverage() {
       endDate: '2025-01-02T18:00',
       latitude: -8.05,
       longitude: -34.9,
-      palestrantes: 'Pr. Carlos, Pra. Ana', // string input → L273-276
-      bandas: 'Banda Teste', // string input
-    }).catch(() => {});
+      palestrantes: 'Pr. Carlos, Pra. Ana',
+      bandas: 'Banda Teste',
+    }).catch(() => { });
 
-    // === COVERAGE: handleCreateEvent L336 (missing dates) ===
     eventService.handleCreateEvent({
       title: 'Teste Sem Datas',
       tipoEvento: 'Conferência',
-      date: '', // empty date
+      date: '',
       endDate: '',
       latitude: -8.05,
       longitude: -34.9,
-    }).catch(() => {});
+    }).catch(() => { });
 
-    // === COVERAGE: handleCreateEvent with missing tipoEvento L332 ===
     eventService.handleCreateEvent({
       title: 'Teste Sem Tipo',
       tipoEvento: 'InvalidTipo',
@@ -225,93 +221,85 @@ export default function TestCoverage() {
       endDate: '2025-01-02T18:00',
       latitude: -8.05,
       longitude: -34.9,
-    }).catch(() => {});
+    }).catch(() => { });
 
-    // === COVERAGE: handleUpdateEvent L355-365 tipo validation + catch ===
     eventService.handleUpdateEvent('1', {
       title: 'Teste Update',
       tipoEvento: 'InvalidTipo',
-    }).catch(() => {});
+    }).catch(() => { });
 
-    // === COVERAGE: buildGoogleCalendarUrl branches ===
     eventService.buildGoogleCalendarUrl(null);
     eventService.buildGoogleCalendarUrl({});
     eventService.buildGoogleCalendarUrl({ date: '2025-01-01T09:00' });
     eventService.buildGoogleCalendarUrl({ date: '2025-01-01T09:00', endDate: '2025-01-02T18:00', title: 'Evento', description: 'Desc', location: 'Local' });
 
-    // === COVERAGE: isOngoingOrFuture branches ===
     eventService.isOngoingOrFuture(null);
     eventService.isOngoingOrFuture({});
     eventService.isOngoingOrFuture({ endDate: '2099-12-31' });
     eventService.isOngoingOrFuture({ date: '2020-01-01' });
 
-    // Mocks adicionais para testar catch blocks e branches (services Coverage)
+
     mapaService.fetchEndereco(null, null);
-    mapaService.fetchEndereco(0, 0); // Vai falhar a requisição /mapa/endereco
+    mapaService.fetchEndereco(0, 0);
     mapaService.buscarLocais("ab");
-    mapaService.buscarLocais("Recife"); // Vai falhar o fetch do OSM se não mockado
+    mapaService.buscarLocais("Recife");
 
-    LiderService.getAllLideres().catch(() => {});
-    LiderService.getLiderById(1).catch(() => {});
-    LiderService.createLider({}).catch(() => {});
-    LiderService.updateLider(1, {}).catch(() => {});
-    LiderService.deleteLider(1).catch(() => {});
+    LiderService.getAllLideres().catch(() => { });
+    LiderService.getLiderById(1).catch(() => { });
+    LiderService.createLider({}).catch(() => { });
+    LiderService.updateLider(1, {}).catch(() => { });
+    LiderService.deleteLider(1).catch(() => { });
 
-    LiderApi.getAll().catch(() => {});
-    LiderApi.getById(1).catch(() => {});
-    LiderApi.create({}).catch(() => {});
-    LiderApi.update(1, {}).catch(() => {});
-    LiderApi.delete(1).catch(() => {});
+    LiderApi.getAll().catch(() => { });
+    LiderApi.getById(1).catch(() => { });
+    LiderApi.create({}).catch(() => { });
+    LiderApi.update(1, {}).catch(() => { });
+    LiderApi.delete(1).catch(() => { });
 
-    voluntarioApi.buscarVoluntario(1).catch(() => {});
-    voluntarioApi.deletarVoluntario(1).catch(() => {});
-    voluntarioApi.contarVoluntariosPorEvento(1).catch(() => {});
-    voluntarioApi.criarVoluntario({ nome: 'Teste', email: 'teste@test.com' }).catch(() => {}); // L40-41
-    voluntarioApi.listarVoluntarios().catch(() => {}); // L30-31
+    voluntarioApi.buscarVoluntario(1).catch(() => { });
+    voluntarioApi.deletarVoluntario(1).catch(() => { });
+    voluntarioApi.contarVoluntariosPorEvento(1).catch(() => { });
+    voluntarioApi.criarVoluntario({ nome: 'Teste', email: 'teste@test.com' }).catch(() => { });
+    voluntarioApi.listarVoluntarios().catch(() => { });
 
-    speakerService.fetchSpeakers().catch(() => {});
-    speakerService.fetchSpeakerById(1).catch(() => {});
-    speakerService.fetchSpeakersByEvent(1).catch(() => {});
-    speakerService.handleCreateSpeaker({}).then(() => {}); // erro nome
-    speakerService.handleCreateSpeaker({ name: 'Valid' }).then(() => {}); // catch block api
-    speakerService.handleUpdateSpeaker(1, { name: 'Valid' }).then(() => {});
-    speakerService.handleDeleteSpeaker(1).then(() => {});
+    speakerService.fetchSpeakers().catch(() => { });
+    speakerService.fetchSpeakerById(1).catch(() => { });
+    speakerService.fetchSpeakersByEvent(1).catch(() => { });
+    speakerService.handleCreateSpeaker({}).then(() => { });
+    speakerService.handleCreateSpeaker({ name: 'Valid' }).then(() => { });
+    speakerService.handleUpdateSpeaker(1, { name: 'Valid' }).then(() => { });
+    speakerService.handleDeleteSpeaker(1).then(() => { });
 
-    eventService.fetchEventGallery(1).catch(() => {});
-    eventService.fetchEventGallery(null).catch(() => {}); // null id → returns []
-    eventService.fetchAggregatedGallery().catch(() => {}); // aggregated gallery
-    eventService.handleCreateActivity(1, { name: 'A' }, null).then(() => {});
-    eventService.handleUpdateActivity(1, { name: 'A' }, null).then(() => {});
-    eventService.handleDeleteActivity(1).then(() => {});
-    eventService.handleCreateActivity(1, {}, null).then(() => {}); // empty nome
-    eventService.handleCreateActivity(1, { name: '   ' }, null).then(() => {}); // whitespace nome
+    eventService.fetchEventGallery(1).catch(() => { });
+    eventService.fetchEventGallery(null).catch(() => { });
+    eventService.fetchAggregatedGallery().catch(() => { });
+    eventService.handleCreateActivity(1, { name: 'A' }, null).then(() => { });
+    eventService.handleUpdateActivity(1, { name: 'A' }, null).then(() => { });
+    eventService.handleDeleteActivity(1).then(() => { });
+    eventService.handleCreateActivity(1, {}, null).then(() => { });
+    eventService.handleCreateActivity(1, { name: '   ' }, null).then(() => { });
 
-    productService.handleCreateProduct({}).then(() => {}); // err
-    productService.handleCreateProduct({ name: 'Valid' }).then(() => {}); // catch
-    productService.handleUpdateProduct(1, {}).then(() => {}); // err
-    productService.handleUpdateProduct(1, { name: 'Valid' }).then(() => {}); // catch
-    productService.handleDeleteProduct(1).then(() => {}); // catch
+    productService.handleCreateProduct({}).then(() => { });
+    productService.handleCreateProduct({ name: 'Valid' }).then(() => { });
+    productService.handleUpdateProduct(1, {}).then(() => { });
+    productService.handleUpdateProduct(1, { name: 'Valid' }).then(() => { });
+    productService.handleDeleteProduct(1).then(() => { });
 
     driveImage.toDriveImageUrl(null);
     driveImage.toDriveImageUrl("http://not-drive.com");
-    driveImage.toDriveImageUrl("https://drive.google.com/open?id=test123"); // open?id= pattern L54
-    driveImage.toDriveImageUrl("https://drive.google.com/d/testid456"); // /d/ pattern L57
-    driveImage.toDriveImageUrl("https://drive.google.com/file/d/abc123/view"); // /file/d/ pattern L51
-    driveImage.toDriveImageUrl("https://drive.google.com/uc?export=download&id=xyz789"); // &id= pattern L54
+    driveImage.toDriveImageUrl("https://drive.google.com/open?id=test123");
+    driveImage.toDriveImageUrl("https://drive.google.com/d/testid456");
+    driveImage.toDriveImageUrl("https://drive.google.com/file/d/abc123/view");
+    driveImage.toDriveImageUrl("https://drive.google.com/uc?export=download&id=xyz789");
     driveImage.toBackendImageUrl(null);
     driveImage.toBackendImageUrl("http://not-drive.com");
-    driveImage.toBackendImageUrl("https://lh3.googleusercontent.com/d/testid=w1200"); // already extracted
-    driveImage.toBackendImageUrl("https://drive.google.com/file/d/abc123/view"); // Drive URL → backend proxy L42
-    driveImage.toBackendImageUrl("https://drive.google.com/open?id=test123"); // open?id= pattern
-    driveImage.toBackendImageUrl("https://drive.google.com/d/testid456"); // /d/ pattern
+    driveImage.toBackendImageUrl("https://lh3.googleusercontent.com/d/testid=w1200");
+    driveImage.toBackendImageUrl("https://drive.google.com/file/d/abc123/view");
+    driveImage.toBackendImageUrl("https://drive.google.com/open?id=test123");
+    driveImage.toBackendImageUrl("https://drive.google.com/d/testid456");
 
-    // === COVERAGE: useGeolocation request() when unsupported (L46-53) ===
-    // geo.request is already available – the test will call it via button
+    volunteerService.getVolunteerById(99999).catch(() => { });
 
-    // === COVERAGE: volunteerService toVoluntario(null) L11 ===
-    volunteerService.getVolunteerById(99999).catch(() => {});
-
-    // === COVERAGE: handleCreateEvent L338 (lat/lng empty string and null) ===
     eventService.handleCreateEvent({
       title: 'Teste Lat Vazia',
       tipoEvento: 'Conferência',
@@ -319,7 +307,7 @@ export default function TestCoverage() {
       endDate: '2025-01-02T18:00',
       latitude: '',
       longitude: '',
-    }).catch(() => {});
+    }).catch(() => { });
     eventService.handleCreateEvent({
       title: 'Teste Lat Null',
       tipoEvento: 'Conferência',
@@ -327,7 +315,7 @@ export default function TestCoverage() {
       endDate: '2025-01-02T18:00',
       latitude: null,
       longitude: null,
-    }).catch(() => {});
+    }).catch(() => { });
 
   }, []);
 
@@ -411,7 +399,6 @@ export default function TestCoverage() {
       <LideresSection />
       <ProdutosSection />
 
-      {/* TimeInput – rendered to exercise all branches via Playwright interactions */}
       <div id="time-input-test">
         <TimeInput
           name="testTime"
@@ -422,13 +409,11 @@ export default function TestCoverage() {
         />
       </div>
 
-      {/* CalendarioSection with future events to exercise sort branch L33 */}
       <CalendarioSection events={[
         { id: 901, title: 'Evento Z', date: new Date(Date.now() + 86400000 * 5).toISOString(), location: 'Local A', description: 'Desc A', slug: '901-evento-z' },
         { id: 902, title: 'Evento A', date: new Date(Date.now() + 86400000 * 2).toISOString(), location: 'Local B', description: 'Desc B', slug: '902-evento-a' },
       ]} />
 
-      {/* Button to trigger geolocation request (exercises useGeolocation.request L45-53) */}
       <button id="geo-request-btn" onClick={geo.request}>Request Geo</button>
       <span id="geo-status">{geo.status}</span>
 
