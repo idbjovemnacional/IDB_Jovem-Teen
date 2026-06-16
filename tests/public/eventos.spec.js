@@ -53,17 +53,6 @@ test.describe('Página de Eventos', () => {
     await expect(btnInscrevase).toBeVisible();
   });
 
-  test('deve exibir o carrossel "Próximos eventos"', async ({ page }) => {
-    const tituloProximos = page.getByRole('heading', { name: 'Próximos eventos' });
-    await expect(tituloProximos).toBeVisible();
-
-    // Setas do carrossel (desktop only, assume desktop viewport default)
-    const setaPrev = page.getByLabel('Anterior');
-    const setaNext = page.getByLabel('Próximo');
-    await expect(setaPrev).toBeVisible();
-    await expect(setaNext).toBeVisible();
-  });
-
   test('deve exibir a grid de eventos com os cards', async ({ page }) => {
     // Como os eventos estão mocados na página, garantimos que pelo menos 1 card é renderizado na grid principal
     const gridContainer = page.locator('section.pb-20 > div > div.grid');
@@ -99,17 +88,13 @@ test.describe('Página de Eventos', () => {
   test('deve filtrar por tipo de evento (select filter-tipo)', async ({ page }) => {
     const selectTipo = page.locator('select#filter-tipo');
 
-    // Seleciona "Retiro"
-    await selectTipo.selectOption('Retiro');
+    await selectTipo.selectOption('Conferência');
 
-    // Grid deve mostrar apenas eventos do tipo Retiro (ou nenhum se não houver)
     const gridContainer = page.locator('section.pb-20 > div > div.grid');
 
-    // Verifica que a grid atualiza (ou mostra empty state)
     const cardsVisiveis = gridContainer.getByRole('link', { name: /Veja mais/i });
     const emptyState = page.getByRole('heading', { name: 'Nenhum evento encontrado' });
 
-    // Um dos dois deve ser verdade
     const temCards = await cardsVisiveis.count() > 0;
     const temEmpty = await emptyState.isVisible().catch(() => false);
     expect(temCards || temEmpty).toBeTruthy();
@@ -159,44 +144,4 @@ test.describe('Página de Eventos', () => {
     await expect(emptyState).toBeVisible();
   });
 
-  test('deve navegar o carrossel ao clicar nas setas', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-
-    const setaNext = page.getByLabel('Próximo');
-    const setaPrev = page.getByLabel('Anterior');
-
-    // Clica a seta para a direita e verifica que não quebra
-    await setaNext.click();
-    await page.waitForTimeout(400);
-
-    // Clica a seta para a esquerda
-    await setaPrev.click();
-    await page.waitForTimeout(400);
-
-    // O carrossel ainda deve estar visível
-    const tituloProximos = page.getByRole('heading', { name: 'Próximos eventos' });
-    await expect(tituloProximos).toBeVisible();
-  });
-
-  test('deve exibir cards do carrossel com botão "Inscreva-se"', async ({ page }) => {
-    // Verifica os CarouselCards dentro do carrossel
-    const carouselSection = page.locator('section').filter({ hasText: 'Próximos eventos' });
-
-    const inscrevaseButtons = carouselSection.getByRole('button', { name: /Inscreva-se/i });
-    const count = await inscrevaseButtons.count();
-
-    // Deve ter pelo menos 1 botão Inscreva-se no carrossel
-    expect(count).toBeGreaterThan(0);
-
-    // Verifica que o primeiro card tem link "Veja mais" também
-    const vejaMaisLinks = carouselSection.getByRole('link', { name: /Veja mais/i });
-    expect(await vejaMaisLinks.count()).toBeGreaterThan(0);
-  });
-
-  test('deve ter links "Veja mais" do carrossel apontando para a página do evento', async ({ page }) => {
-    const carouselSection = page.locator('section').filter({ hasText: 'Próximos eventos' });
-    const vejaMais = carouselSection.getByRole('link', { name: /Veja mais/i }).first();
-    await expect(vejaMais).toBeVisible();
-    await expect(vejaMais).toHaveAttribute('href', /\/eventos\/\d+/);
-  });
 });

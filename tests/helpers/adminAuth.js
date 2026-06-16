@@ -14,7 +14,7 @@ function fakeAdminToken() {
     preferred_username: "idbjovem",
     email: "idbjovem@example.com",
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
-    realm_access: { roles: ["admin"] },
+    realm_access: { roles: ["admin", "superadmin"] },
   });
 
   return `${header}.${payload}.signature`;

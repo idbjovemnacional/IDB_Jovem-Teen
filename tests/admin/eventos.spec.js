@@ -36,6 +36,7 @@ test.describe('Admin - Gerenciamento de Eventos CRUD', () => {
 
     // Preenche o form (UI nova: datas separadas + local pelo mapa)
     await page.getByPlaceholder('Nome do Evento').fill('Retiro Playwright');
+    await page.locator('select[name="tipoEvento"]').selectOption('Conferência');
     await page.locator('textarea[name="description"]').fill('Um evento para testar com E2E.');
     await preencherLocalPelaBusca(page);
     await page.locator('input[name="startDay"]').fill('2029-12-30');
@@ -306,8 +307,9 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
       await dialog.accept();
     });
 
-    // Preenche título e datas mas NÃO seleciona o local no mapa
+    // Preenche título, tipo e datas mas NÃO seleciona o local no mapa
     await page.getByPlaceholder('Nome do Evento').fill('Evento Sem Local');
+    await page.locator('select[name="tipoEvento"]').selectOption('Conferência');
     await page.locator('input[name="startDay"]').fill('2029-12-30');
     await page.locator('input[name="startTime"]').fill('08:00');
     await page.locator('input[name="endDay"]').fill('2029-12-31');
@@ -405,6 +407,7 @@ test.describe('Admin - Cobertura Extra de Branches', () => {
     // "Eventos Anteriores" com link "Detalhes"
     await page.goto('/admin/eventos/criar');
     await page.getByPlaceholder('Nome do Evento').fill('Evento Minimalista');
+    await page.locator('select[name="tipoEvento"]').selectOption('Outros');
     await preencherLocalPelaBusca(page);
     await page.locator('input[name="startDay"]').fill('2020-01-01');
     await page.locator('input[name="startTime"]').fill('08:00');
