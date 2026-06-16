@@ -194,13 +194,13 @@ export default function Eventos() {
             </h2>
 
             <div className="rounded-[32px] overflow-hidden max-w-3xl border-[6px] border-black bg-black mx-auto">
-              <div className="relative">
+              <Link to={`/eventos/${featured.slug}`} className="block relative">
                 <img
                   src={featured.image}
                   alt={featured.title}
                   className="w-full h-[300px] object-cover rounded-t-[26px]"
                 />
-              </div>
+              </Link>
               {/* Info sobre a imagem */}
               <div className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
                 <div>

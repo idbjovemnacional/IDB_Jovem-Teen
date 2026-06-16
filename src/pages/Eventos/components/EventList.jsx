@@ -21,13 +21,13 @@ export default function EventList({ events }) {
           className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group"
         >
           {/* Imagem */}
-          <div className="relative overflow-hidden h-52">
+          <Link to={`/eventos/${event.slug}`} className="block relative overflow-hidden h-52">
             <img
               src={event.image}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-          </div>
+          </Link>
 
           {/* Info */}
           <div className="p-4">
