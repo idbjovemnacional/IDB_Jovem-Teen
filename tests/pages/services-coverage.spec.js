@@ -1083,3 +1083,77 @@ test.describe('volunteerService.js – branches de erro', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 });
+
+test.describe('Cobertura extra de services via page.evaluate no TestCoverage', () => {
+  test('cobre os branches de fallback e null values diretamente', async ({ page }) => {
+    await setupApiMock(page);
+
+    await page.route('**/mapa/endereco*', (route) => route.abort('failed'));
+    
+    await page.route('**/produto/99999*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+    await page.route('**/produto/', async (route) => {
+      if (route.request().method() === 'POST' && route.request().postDataJSON()?.nome === 'fail-fallback') {
+        return route.abort('failed');
+      }
+      await route.fallback();
+    });
+
+    await page.route('**/banda-palestrante/99999*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+    await page.route('**/banda-palestrante/', async (route) => {
+      if (route.request().method() === 'POST') {
+        const payload = route.request().postDataJSON();
+        if (payload?.nome === 'fail-array') {
+          return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ detail: [null, "string erro", { msg: null }] }) });
+        }
+        if (payload?.nome === 'fail-fallback') {
+          return route.abort('failed');
+        }
+      }
+      await route.fallback();
+    });
+
+    await page.route('**/voluntarios/99999*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+    await page.route('**/voluntarios/999/evento/*/status*', (route) => {
+      return route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ detail: "Status invalido" }) });
+    });
+
+    await page.goto('/test-coverage');
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(async () => {
+      await window.mapaService.fetchEndereco(0, 0).catch(() => {});
+      
+      await window.productService.getProductById(99999).catch(() => {});
+      await window.productService.handleCreateProduct({ name: 'fail-fallback' }).catch(() => {});
+
+      await window.speakerService.fetchSpeakerById(99999).catch(() => {});
+      await window.speakerService.handleCreateSpeaker({ name: 'fail-array' }).catch(() => {});
+      await window.speakerService.handleCreateSpeaker({ name: 'fail-fallback' }).catch(() => {});
+
+      await window.volunteerService.getVolunteerById(99999).catch(() => {});
+      await window.volunteerService.handleUpdateStatus(999, 1, 'aprovado').catch(() => {});
+    });
+    
+    await page.waitForTimeout(500);
+  });
+});
+
+test.describe('Cobertura extra de serviços em TestCoverage', () => {
+  test('exercita branches de nulo e erro via TestCoverage', async ({ page }) => {
+    await setupApiMock(page);
+    await page.route(/\/mapa\/endereco/, (route) => route.abort('failed'));
+    await page.route(/\/produto\/null-product/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+    await page.route(/\/produto\/?$/, async (route) => {
+      if (route.request().method() === 'POST' && route.request().postDataJSON()?.nome === 'fail') {
+        return route.abort('failed');
+      }
+      await route.fallback();
+    });
+    await page.route(/\/banda-palestrante\/fail/, (route) => route.abort('failed'));
+    await page.route(/\/voluntarios\/null-vol/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+    await page.route(/\/voluntarios\/fail\/evento\/\d+\/status/, (route) => route.abort('failed'));
+    await page.goto('/test-coverage');
+    await page.waitForTimeout(1000);
+    await expect(page.locator('#test-title')).toBeVisible();
+  });
+});

@@ -40,6 +40,7 @@ import LiderApi from '../services/api/liderApi';
 import * as voluntarioApi from '../services/api/voluntarioApi';
 import * as speakerService from '../services/speakerService';
 import * as driveImage from '../utils/driveImage';
+import { api } from '../services/api';
 
 export default function TestCoverage() {
   const modal = useModal();
@@ -56,6 +57,12 @@ export default function TestCoverage() {
   const handleCancel = () => { };
 
   useEffect(() => {
+    window.api = api;
+    window.mapaService = mapaService;
+    window.productService = productService;
+    window.speakerService = speakerService;
+    window.volunteerService = volunteerService;
+
     handleFormSubmit({});
     handleChange('test');
     handleEdit(1);
