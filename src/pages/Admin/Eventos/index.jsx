@@ -11,7 +11,7 @@ import DeleteEventModal from "./components/DeleteEventModal";
 export default function AdminEventos() {
   const navigate = useNavigate();
   const deleteModal = useModal();
-  const [events, setEvents] = useState({ proximos: [], anteriores: [] });
+  const [events, setEvents] = useState({ proximos: [], emAndamento: [], anteriores: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -93,6 +93,30 @@ export default function AdminEventos() {
           </div>
         ) : (
           <EmptyState message="Nenhum evento próximo cadastrado." className="border-none shadow-none p-6" />
+        )}
+      </div>
+
+      {/* Eventos em Andamento */}
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <h2 className="font-bold text-[#1E1E1E] text-lg">Eventos em Andamento</h2>
+        </div>
+        <hr className="border-gray-200 mb-3" />
+
+        {events.emAndamento.length > 0 ? (
+          <div>
+            {events.emAndamento.map((event) => (
+              <UpcomingEventRow
+                key={event.id}
+                event={event}
+                onEdit={handleEdit}
+                onDelete={(ev) => deleteModal.open(ev)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState message="Nenhum evento em andamento no momento." className="border-none shadow-none p-6" />
         )}
       </div>
 

@@ -99,6 +99,20 @@ export function isFutureEvent(isoDate) {
   return eventDate >= today;
 }
 
+/* Classifica o evento em relação ao dia de hoje:
+   "upcoming" ainda não começou | "ongoing" começou e não terminou | "past" já terminou. */
+export function getEventStatus(event) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = parseWallClock(event?.date);
+  const end = parseWallClock(event?.endDate || event?.date);
+  const startDate = start ? new Date(start.year, start.month - 1, start.day) : null;
+  const endDate = end ? new Date(end.year, end.month - 1, end.day) : null;
+  if (endDate && endDate < today) return "past";
+  if (startDate && startDate > today) return "upcoming";
+  return "ongoing";
+}
+
 export function isOngoingOrFuture(event) {
   const p = parseWallClock(event?.endDate || event?.date);
   if (!p) return false;
@@ -266,9 +280,16 @@ export async function fetchEventById(slugOrId) {
 
 export async function getGroupedEvents() {
   const all = await fetchAllEvents();
-  const proximos = all.filter((e) => isFutureEvent(e.date));
-  const anteriores = all.filter((e) => !isFutureEvent(e.date));
-  return { proximos, anteriores };
+  const proximos = [];
+  const emAndamento = [];
+  const anteriores = [];
+  for (const e of all) {
+    const status = getEventStatus(e);
+    if (status === "upcoming") proximos.push(e);
+    else if (status === "ongoing") emAndamento.push(e);
+    else anteriores.push(e);
+  }
+  return { proximos, emAndamento, anteriores };
 }
 
 export const TIPOS_EVENTO = ["Conferência", "Acampamento", "Campanha Nacional", "Outros"];
