@@ -46,6 +46,14 @@ export function formatDate(isoDate) {
   return `${pad(p.day)}/${pad(p.month)}/${p.year}`;
 }
 
+/* Data única para eventos de um dia; intervalo "início - fim" para eventos de vários dias. */
+export function formatDateRange(start, end) {
+  const s = formatDate(start);
+  const e = formatDate(end);
+  if (s && e && e !== s) return `${s} - ${e}`;
+  return s || e || "";
+}
+
 export function extractDayMonth(isoDate) {
   const p = parseWallClock(isoDate);
   if (!p) return { day: "--", month: "---" };

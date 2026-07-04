@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, Clock } from "lucide-react";
-import { formatDate, toFormResponseUrl } from "../../../services/eventService";
+import { formatDateRange, toFormResponseUrl } from "../../../services/eventService";
 
 export default function EventList({ events }) {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function EventList({ events }) {
               <div className="flex items-center gap-2 text-sm text-[#1E1E1E]/60">
                 <Clock size={14} className="shrink-0" />
                 <span>
-                  {formatDate(event.date)}
+                  {formatDateRange(event.date, event.endDate)}
                   {event.time ? ` - ${event.time}` : ""}
                 </span>
               </div>

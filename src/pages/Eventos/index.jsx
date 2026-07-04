@@ -7,7 +7,7 @@ import EventList from "./components/EventList";
 import EmptyEvents from "./components/EmptyEvents";
 import {
   fetchAllEvents,
-  formatDate,
+  formatDateRange,
   isOngoingOrFuture,
   splitDateTime,
   toFormResponseUrl,
@@ -214,7 +214,7 @@ export default function Eventos() {
                     </span>
                     <span className="flex items-center gap-1.5 text-white/90 text-sm">
                       <Clock size={16} />
-                      {formatDate(featured.date)}
+                      {formatDateRange(featured.date, featured.endDate)}
                       {featured.time ? ` - ${featured.time}` : ""}
                     </span>
                   </div>

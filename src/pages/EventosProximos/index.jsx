@@ -9,7 +9,7 @@ import {
   LocateFixed,
 } from "lucide-react";
 import useGeolocation from "../../hooks/useGeolocation";
-import { fetchAllEvents, formatDate, isOngoingOrFuture } from "../../services/eventService";
+import { fetchAllEvents, formatDateRange, isOngoingOrFuture } from "../../services/eventService";
 import { distanceKm, formatDistance, hasCoords } from "../../lib/geo";
 import NearbyMap from "./components/NearbyMap";
 import Loading from "../../components/ui/Loading";
@@ -148,7 +148,7 @@ export default function EventosProximos() {
                     </span>
                     <span className="flex items-center gap-2 text-sm text-[#1E1E1E]/60">
                       <Clock size={14} className="shrink-0" />
-                      {formatDate(event.date)}
+                      {formatDateRange(event.date, event.endDate)}
                       {event.time ? ` - ${event.time}` : ""}
                     </span>
                   </div>
