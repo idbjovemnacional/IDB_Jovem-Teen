@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 import DashboardProductCard from "./components/DashboardProductCard";
 import CalendarMini from "./components/CalendarMini";
 import EmptyState from "../../../components/ui/EmptyState";
-import { fetchAllEvents, isFutureEvent, extractDayMonth } from "../../../services/eventService";
+import { fetchAllEvents, getEventStatus, extractDayMonth } from "../../../services/eventService";
 import { fetchAllProducts } from "../../../services/productService";
 
 function DashboardEventRow({ event, isPast = false }) {
@@ -58,6 +58,7 @@ function byDateDesc(a, b) {
 // tela principal do admin
 export default function AdminDashboard() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [ongoingEvents, setOngoingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,18 +77,25 @@ export default function AdminDashboard() {
         if (!active) return;
 
         const nextEvents = allEvents
-          .filter((event) => isFutureEvent(event.date))
+          .filter((event) => getEventStatus(event) === "upcoming")
+          .sort(byDateAsc)
+          .slice(0, 4)
+          .map((event) => ({ ...event, ...extractDayMonth(event.date) }));
+
+        const currentEvents = allEvents
+          .filter((event) => getEventStatus(event) === "ongoing")
           .sort(byDateAsc)
           .slice(0, 4)
           .map((event) => ({ ...event, ...extractDayMonth(event.date) }));
 
         const previousEvents = allEvents
-          .filter((event) => !isFutureEvent(event.date))
+          .filter((event) => getEventStatus(event) === "past")
           .sort(byDateDesc)
           .slice(0, 4)
           .map((event) => ({ ...event, ...extractDayMonth(event.date) }));
 
         setUpcomingEvents(nextEvents);
+        setOngoingEvents(currentEvents);
         setPastEvents(previousEvents);
         setProducts(allProducts.slice(0, 8));
       } catch {
@@ -114,6 +122,26 @@ export default function AdminDashboard() {
       />
 
       {error && <EmptyState message={error} className="border-red-100 bg-red-50/60 text-red-700" />}
+
+      {/* eventos em andamento (só aparece quando há algum acontecendo) */}
+      {!loading && ongoingEvents.length > 0 && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-[#1E1E1E] text-lg">Eventos em Andamento</h2>
+            <Link
+              to="/admin/eventos"
+              className="text-xs font-semibold text-[#FF6D2C] hover:underline flex items-center gap-0.5"
+            >
+              Ver todos <ChevronRight size={14} />
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {ongoingEvents.map((event) => (
+              <DashboardEventRow key={event.id} event={event} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* linha de eventos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
