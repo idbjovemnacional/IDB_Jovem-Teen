@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { fetchEventGallery } from "../../../services/eventService";
 import defaultEventImage from "../../../assets/images/idbJovemOne.png";
 
 export default function EventosSection({ events = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [covers, setCovers] = useState({});
   const carouselEvents = events.slice(0, 4);
-  const carouselIds = carouselEvents.map((e) => e.id).join(",");
 
   useEffect(() => {
     if (carouselEvents.length <= 1) return;
@@ -18,24 +15,8 @@ export default function EventosSection({ events = [] }) {
     return () => clearInterval(interval);
   }, [carouselEvents.length]);
 
-  useEffect(() => {
-    let active = true;
-    Promise.all(
-      carouselEvents.map(async (ev) => {
-        const fotos = await fetchEventGallery(ev.id);
-        return [ev.id, fotos[0]?.url || null];
-      })
-    ).then((pairs) => {
-      if (active) setCovers(Object.fromEntries(pairs));
-    });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [carouselIds]);
-
   const featured = carouselEvents[currentIndex];
-  const coverImage = (featured && covers[featured.id]) || defaultEventImage;
+  const coverImage = featured?.image || defaultEventImage;
 
   return (
     <section className="w-full bg-[#8A3816] py-16 md:py-24 overflow-hidden">
