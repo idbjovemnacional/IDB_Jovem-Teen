@@ -33,6 +33,8 @@ function makeSeed() {
         local_longitude: -34.9,
         link_galeria: "pasta-retiro",
         formulario_link: "https://forms.gle/retiro",
+        /* Fluxo de participantes da US09. */
+        formulario_participante_link: "https://forms.gle/retiro-participantes",
         link_imagem: "",
         calendario_evento_id: null,
       },
@@ -46,7 +48,10 @@ function makeSeed() {
         local_latitude: -8.1,
         local_longitude: -35.0,
         link_galeria: "",
+        /* Evento sem nenhum dos dois links → exercita os estados "fluxo não
+           aberto" nas telas pública e administrativa. */
         formulario_link: "",
+        formulario_participante_link: "",
         link_imagem: "",
         calendario_evento_id: null,
       },
@@ -61,6 +66,7 @@ function makeSeed() {
         local_longitude: -34.88,
         link_galeria: "pasta-congresso",
         formulario_link: "https://forms.gle/congresso",
+        formulario_participante_link: "",
         link_imagem: "",
         calendario_evento_id: null,
       },
@@ -76,6 +82,7 @@ function makeSeed() {
         local_longitude: null,
         link_galeria: "",
         formulario_link: "",
+        formulario_participante_link: "",
         link_imagem: "",
         calendario_evento_id: null,
       },
@@ -146,6 +153,8 @@ function makeSeed() {
       { lider_id: 303, nome: "Pedro Líder", cargo: "Diretor Regional de Jovens", regiao: "Região Sul", ordem: 3, is_antigo: false, imagem_url: "https://lh3.googleusercontent.com/d/lider303=w1200", mini_biografia: null, redes_sociais: null, gestao: "" },
       { lider_id: 304, nome: "Antiga Diretora", cargo: "Diretora Nacional de Adolescentes", regiao: "Nacional", ordem: 1, is_antigo: true, imagem_url: "https://lh3.googleusercontent.com/d/lider304=w1200", mini_biografia: null, redes_sociais: null, gestao: "2020 – 2023" },
       { lider_id: 305, nome: "Antigo Diretor", cargo: "Diretor Nacional de Jovens", regiao: "Nacional", ordem: 2, is_antigo: true, imagem_url: "https://lh3.googleusercontent.com/d/lider305=w1200", mini_biografia: null, redes_sociais: null, gestao: "2017 – 2020" },
+      // Antigo de cargo regional: não entra na galeria de anteriores, que contempla apenas o cargo nacional (US05).
+      { lider_id: 306, nome: "Rafael Regional Antigo", cargo: "Diretor Regional de Jovens", regiao: "Região Sul", ordem: 3, is_antigo: true, imagem_url: "https://lh3.googleusercontent.com/d/lider306=w1200", mini_biografia: null, redes_sociais: null, gestao: "2015 – 2018" },
     ],
     products: [
       {
@@ -210,6 +219,27 @@ function makeSeed() {
         resposta_id: 'r9999',
         link_resposta: '',
       }
+    ],
+    /* Inscrições do fluxo de participantes (US09), que é separado do de
+       voluntários: não tem status, porque ninguém aprova um participante.
+       Só o evento 1 tem inscritos — o 2 exercita a listagem vazia. */
+    inscricoesParticipantes: [
+      {
+        evento_id: 1,
+        participante_id: 500,
+        nome: "Carla Mendes",
+        email: "carla@example.com",
+        resposta_id: "p1",
+        link_resposta: "https://forms.gle/resposta-participante1",
+      },
+      {
+        evento_id: 1,
+        participante_id: 501,
+        nome: "Rafael Dias",
+        email: "rafael@example.com",
+        resposta_id: "p2",
+        link_resposta: "",
+      },
     ],
     nextEventId: 1000,
     nextActivityId: 2000,
@@ -379,6 +409,14 @@ export async function setupApiMock(page) {
         const eventId = Number(m[1]);
         return route.fulfill(
           json(db.inscricoes.filter((i) => i.evento_id === eventId))
+        );
+      }
+      /* Fluxo de participantes (US09), separado do de voluntariado acima. */
+      m = path.match(/\/formulario\/eventos\/(\d+)\/participantes$/);
+      if (m) {
+        const eventId = Number(m[1]);
+        return route.fulfill(
+          json(db.inscricoesParticipantes.filter((i) => i.evento_id === eventId))
         );
       }
 
@@ -560,6 +598,7 @@ export async function setupApiMock(page) {
             local_longitude: body.local_longitude,
             link_galeria: body.link_galeria || "",
             formulario_link: body.formulario_link || "",
+            formulario_participante_link: body.formulario_participante_link || "",
             link_imagem: body.link_imagem || "",
             calendario_evento_id: null,
           };

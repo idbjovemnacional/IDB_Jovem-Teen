@@ -4,6 +4,7 @@ import { Building2, Clock } from "lucide-react";
 import EventFilters from "./components/EventFilters";
 import EventSearch from "./components/EventSearch";
 import EventList from "./components/EventList";
+import PastEvents from "./components/PastEvents";
 import EmptyEvents from "./components/EmptyEvents";
 import {
   fetchAllEvents,
@@ -84,12 +85,18 @@ function matchesEventFilters(event, filters) {
   return tipoAtivo && regiaoAtiva && dataAtiva;
 }
 
+/* Fluxo de participante (US09). Sem link cadastrado, leva à página do evento
+   em vez de abrir o formulário de voluntariado, que é outra inscrição. */
 function inscreverEvento(event, navigate) {
-  if (event.linkFormularioVoluntarios) {
-    window.open(toFormResponseUrl(event.linkFormularioVoluntarios), "_blank", "noopener,noreferrer");
+  if (event.linkFormularioParticipantes) {
+    window.open(toFormResponseUrl(event.linkFormularioParticipantes), "_blank", "noopener,noreferrer");
   } else {
     navigate(`/eventos/${event.slug}`);
   }
+}
+
+function seVoluntariar(event) {
+  window.open(toFormResponseUrl(event.linkFormularioVoluntarios), "_blank", "noopener,noreferrer");
 }
 
 export default function Eventos() {
@@ -233,6 +240,14 @@ export default function Eventos() {
                   >
                     Inscreva-se
                   </button>
+                  {featured.linkFormularioVoluntarios && (
+                    <button
+                      onClick={() => seVoluntariar(featured)}
+                      className="border-2 border-[#FF6D2C] text-[#FF6D2C] hover:bg-[#FF6D2C] hover:text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors w-[130px]"
+                    >
+                      Seja Voluntário
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -257,6 +272,10 @@ export default function Eventos() {
           )}
         </div>
       </section>
+
+      {/* Histórico (US15): o que já aconteceu vem depois da agenda, e a seção
+          se esconde sozinha quando não há evento encerrado. */}
+      <PastEvents />
     </main>
   );
 }

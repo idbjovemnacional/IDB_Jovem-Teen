@@ -88,6 +88,33 @@ test.describe('Página de Detalhes do Evento', () => {
     }
   });
 
+  test('deve separar os convidados por função e ocultar grupo vazio', async ({ page }) => {
+    // Sobrescreve os participantes do evento 1: só pregador e banda, sem
+    // nenhum "convidado" — o grupo Convidados não deve nem aparecer.
+    await page.route(/\/evento\/1\/participantes$/, (route) => {
+      if (route.request().method() !== 'GET') return route.fallback();
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { participante_id: 901, nome: 'Pra. Função Teste', profissao: 'Pregador', link_foto: '' },
+          { participante_id: 902, nome: 'Banda Função Teste', profissao: 'Banda', link_foto: '' },
+        ]),
+      });
+    });
+
+    await page.goto('/eventos/1-retiro-de-verao');
+
+    const tituloPalestrantes = page.getByRole('heading', { name: 'Palestrantes', level: 2 });
+    const tituloBandas = page.getByRole('heading', { name: 'Bandas', level: 2 });
+    await expect(tituloPalestrantes).toBeVisible();
+    await expect(tituloBandas).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Convidados', level: 2 })).toHaveCount(0);
+
+    await expect(page.getByText('Pra. Função Teste')).toBeVisible();
+    await expect(page.getByText('Banda Função Teste')).toBeVisible();
+  });
+
   test('deve renderizar a programação com horários e atividades', async ({ page }) => {
     await page.goto('/eventos/1-retiro-de-verao');
 
@@ -163,12 +190,27 @@ test.describe('Página de Detalhes do Evento', () => {
     await btnVoluntario.click();
   });
 
-  test('deve cobrir o botão Seja Voluntário no Hero sem linkFormularioVoluntarios', async ({ page }) => {
+  /* US09: os dois fluxos de inscrição são independentes, então o botão de cada
+     um só existe quando o evento abriu aquele fluxo. Antes "Seja Voluntário"
+     aparecia sempre e não fazia nada nos eventos sem formulário. */
+  test('não deve exibir o botão Seja Voluntário no evento sem linkFormularioVoluntarios', async ({ page }) => {
     await page.goto('/eventos/2-acampamento');
-    
-    const btnVoluntario = page.getByRole('button', { name: 'Seja Voluntário' });
-    await expect(btnVoluntario).toBeVisible();
-    await btnVoluntario.click(); // Não deve fazer nada, cobre a branch if (event.link...)
+
+    await expect(page.getByRole('heading', { name: 'Acampamento Jovem' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Seja Voluntário' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Inscreva-se' })).toHaveCount(0);
+  });
+
+  test('deve exibir o botão Inscreva-se no Hero quando o evento tem link de participantes', async ({ page }) => {
+    await page.goto('/eventos/1-retiro-de-verao');
+
+    await page.evaluate(() => {
+      window.open = () => null;
+    });
+
+    const btnParticipante = page.getByRole('button', { name: 'Inscreva-se' });
+    await expect(btnParticipante).toBeVisible();
+    await btnParticipante.click();
   });
 
   test('deve cobrir as falhas (catch) no useEventDetails para schedule, gallery e speakers', async ({ page }) => {
